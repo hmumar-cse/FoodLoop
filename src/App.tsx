@@ -195,10 +195,12 @@ function App() {
   // Seamless Claim & Instant Receipt Creation
   const handleClaimItem = useCallback((item: FoodItem, servings: number, trustName?: string) => {
     const claimId = generateClaimId();
+    const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
     const effectiveTrust = trustName || currentUser?.organizationName || 'Anbu Karangal Children Trust & Orphanage';
     
     const qrPayload = JSON.stringify({
       claimId,
+      verificationCode,
       foodItemId: item.id,
       servings,
       trustName: effectiveTrust,
@@ -219,6 +221,7 @@ function App() {
       pickupWindow: item.pickupWindow,
       status: 'pending',
       qrPayload,
+      verificationCode,
       trustName: effectiveTrust,
       recipientName: currentUser?.name || 'Trust Coordinator',
     };
@@ -234,23 +237,52 @@ function App() {
 
     setSelectedFoodItem(null);
     setActiveClaim(newClaim);
-    addToast(`Successfully reserved ${servings} meals for ${effectiveTrust}!`, 'success');
+    addToast(`Reserved ${servings} meals! Handover OTP: ${verificationCode}`, 'success');
   }, [currentUser]);
 
-  // Handover / Pickup Verification
-  const handleConfirmPickup = useCallback((claimId: string): { success: boolean; message: string; claim?: Claim } => {
-    const claim = claims.find((c) => c.id.toUpperCase() === claimId.toUpperCase());
+  // Handover / Pickup Verification (Supports QR Scan JSON, 4-digit OTP, or Claim ID)
+  const handleConfirmPickup = useCallback((codeOrPayload: string): { success: boolean; message: string; claim?: Claim } => {
+    const cleanInput = codeOrPayload.trim();
+    if (!cleanInput) {
+      return { success: false, message: 'Please enter a valid Verification Code or Claim ID.' };
+    }
+
+    // Attempt to parse QR code JSON payload if scanned
+    let targetClaimId = cleanInput;
+    let targetOtp = cleanInput;
+    try {
+      if (cleanInput.startsWith('{') && cleanInput.endsWith('}')) {
+        const parsed = JSON.parse(cleanInput);
+        if (parsed.claimId) targetClaimId = parsed.claimId;
+        if (parsed.verificationCode) targetOtp = parsed.verificationCode;
+      }
+    } catch {
+      // Plain text code
+    }
+
+    const claim = claims.find((c) => 
+      c.id.toUpperCase() === targetClaimId.toUpperCase() ||
+      (c.verificationCode && c.verificationCode === targetOtp) ||
+      (c.id.replace(/-/g, '').toUpperCase() === cleanInput.replace(/-/g, '').toUpperCase())
+    );
+
     if (!claim) {
-      return { success: false, message: 'Claim Voucher ID not found. Please check the code.' };
+      return { success: false, message: `No matching claim found for code "${cleanInput}". Please check the 4-digit OTP or Claim ID.` };
     }
     if (claim.status === 'collected') {
-      return { success: false, message: 'This pickup voucher has already been marked as collected.' };
+      return { success: false, message: `Voucher ${claim.id} (OTP: ${claim.verificationCode || '****'}) was already verified and collected.` };
     }
     if (claim.status === 'cancelled') {
       return { success: false, message: 'This reservation was cancelled.' };
     }
 
-    const updatedClaim = { ...claim, status: 'collected' as const };
+    const updatedClaim: Claim = { 
+      ...claim, 
+      status: 'collected' as const,
+      collectedAt: Date.now(),
+      collectedBy: currentUser?.name || 'Kitchen Dispatch Staff',
+    };
+
     setClaims((prev) =>
       prev.map((c) => (c.id === claim.id ? updatedClaim : c))
     );
@@ -260,9 +292,13 @@ function App() {
       setActiveClaim(updatedClaim);
     }
 
-    addToast(`Handover confirmed for ${claim.foodTitle} (${claim.servingsClaimed} meals)!`, 'success');
-    return { success: true, message: `Handover confirmed for ${claim.trustName || 'Trust'}. ${claim.servingsClaimed} meals verified.`, claim: updatedClaim };
-  }, [claims, activeClaim]);
+    addToast(`Handover Verified! ${claim.servingsClaimed} meals released to ${claim.trustName || 'Trust'}.`, 'success');
+    return { 
+      success: true, 
+      message: `Verified handover of ${claim.servingsClaimed} servings for ${claim.trustName || 'Trust'}.`, 
+      claim: updatedClaim 
+    };
+  }, [claims, activeClaim, currentUser]);
 
   const handleCancelClaim = useCallback((claimId: string) => {
     const claim = claims.find((c) => c.id === claimId);

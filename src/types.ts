@@ -53,9 +53,12 @@ export interface Claim {
   };
   status: 'pending' | 'collected' | 'cancelled' | 'expired';
   qrPayload: string;
+  verificationCode: string; // e.g. "8492" (4-digit pickup handover OTP)
   recipientName?: string;
   trustName?: string;
   recipientPhone?: string;
+  collectedAt?: number;
+  collectedBy?: string;
 }
 
 export type UserRole = 'recipient' | 'donor';

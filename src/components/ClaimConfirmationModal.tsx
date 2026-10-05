@@ -164,23 +164,45 @@ export const ClaimConfirmationModal: React.FC<ClaimConfirmationModalProps> = ({
             </div>
           </div>
 
-          {/* QR Code Container */}
-          <div className="bg-white border-2 border-dashed border-emerald-300 rounded-2xl p-4 text-center shadow-xs">
+          {/* 4-Digit Pickup Verification OTP & QR Code Container */}
+          <div className="bg-white border-2 border-dashed border-emerald-300 rounded-2xl p-4 text-center shadow-xs space-y-3">
+            {/* 4-Digit OTP Code Box */}
+            <div className="bg-emerald-50/80 border border-emerald-200 rounded-xl p-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-900 block mb-1">
+                4-Digit Pickup Verification OTP
+              </span>
+              <div className="flex items-center justify-center gap-2">
+                {(claim.verificationCode || claim.id.slice(-4)).split('').map((digit, idx) => (
+                  <span
+                    key={idx}
+                    className="w-10 h-11 bg-white border-2 border-emerald-500 text-slate-900 font-mono font-extrabold text-xl rounded-lg flex items-center justify-center shadow-xs"
+                  >
+                    {digit}
+                  </span>
+                ))}
+              </div>
+              <p className="text-[10px] text-emerald-800 mt-1.5 font-medium">
+                Provide this 4-digit code to kitchen dispatch if camera is not available.
+              </p>
+            </div>
+
+            {/* QR Code */}
             <div className="bg-white p-2.5 rounded-xl border border-slate-200 inline-block">
               <QRCodeSVG
                 value={claim.qrPayload}
-                size={160}
+                size={150}
                 level="H"
                 includeMargin={false}
                 fgColor="#0F172A"
               />
             </div>
-            <div className="mt-2 text-center">
+
+            <div>
               <span className="text-[11px] font-bold text-slate-700 block">
-                QR Verification Code for Dispatch
+                Digital Pass for Optical Scanner
               </span>
               <span className="text-[10px] text-slate-500">
-                Scan by Donor upon food collection
+                Hold up to Mandapam / Donor scanner at pickup gate
               </span>
             </div>
           </div>

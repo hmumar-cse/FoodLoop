@@ -128,9 +128,12 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
                 className="bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
               >
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="font-mono text-xs font-bold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
                       {claim.id}
+                    </span>
+                    <span className="font-mono text-xs font-extrabold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                      OTP: {claim.verificationCode || claim.id.slice(-4)}
                     </span>
                     <span className="font-bold text-slate-900 text-xs truncate max-w-[200px]">
                       {claim.foodTitle}

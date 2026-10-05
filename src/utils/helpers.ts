@@ -94,6 +94,10 @@ export function generateClaimId(): string {
   return `FL-${randomNum}-${char1}${char2}`;
 }
 
+export function generateVerificationOtp(): string {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+}
+
 export const STORAGE_KEYS = {
   FOOD_ITEMS: 'foodloop_items_v1',
   CLAIMS: 'foodloop_claims_v1',

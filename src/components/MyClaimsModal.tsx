@@ -88,9 +88,12 @@ export const MyClaimsModal: React.FC<MyClaimsModalProps> = ({
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div>
-                              <div className="flex items-center gap-2 mb-1">
+                              <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                                 <span className="font-mono text-xs font-bold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
                                   {claim.id}
+                                </span>
+                                <span className="font-mono text-[11px] font-extrabold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                                  OTP: {claim.verificationCode || claim.id.slice(-4)}
                                 </span>
                                 <span className="text-xs text-slate-500">
                                   {claim.servingsClaimed} servings
