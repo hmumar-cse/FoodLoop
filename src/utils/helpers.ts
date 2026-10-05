@@ -100,4 +100,5 @@ export const STORAGE_KEYS = {
   ROLE: 'foodloop_user_role_v1',
   LOCATION: 'foodloop_user_location_v1',
   USER: 'foodloop_user_v1',
+  REGISTERED_USERS: 'foodloop_registered_users_v1',
 };
