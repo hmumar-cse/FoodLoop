@@ -61,10 +61,10 @@ export const ClaimConfirmationModal: React.FC<ClaimConfirmationModalProps> = ({
             )}
             <div>
               <h3 className="text-sm font-bold tracking-tight">
-                {isCollected ? 'Food Rescue Receipt (Collected)' : 'Official Surplus Food Rescue Receipt'}
+                {isCollected ? 'Pickup Receipt (Collected)' : 'Surplus Food Pickup Pass'}
               </h3>
               <p className="text-[11px] text-slate-400">
-                {isCollected ? 'Handover completed successfully' : 'Present this pass at Mandapam/Donor kitchen'}
+                {isCollected ? 'Handover completed and verified' : 'Present this pass at the pickup location'}
               </p>
             </div>
           </div>
@@ -86,7 +86,7 @@ export const ClaimConfirmationModal: React.FC<ClaimConfirmationModalProps> = ({
               <div>
                 <div className="font-bold text-emerald-950">Food Handover Completed!</div>
                 <div className="text-[11px] text-emerald-800 mt-0.5">
-                  Verified and handed over to trust volunteers. Thank you for preventing food waste!
+                  Verified and collected successfully. Thank you for preventing food waste!
                 </div>
               </div>
             </div>
@@ -94,9 +94,9 @@ export const ClaimConfirmationModal: React.FC<ClaimConfirmationModalProps> = ({
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-amber-950 flex items-center gap-2.5">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping shrink-0"></span>
               <div>
-                <div className="font-bold">Active Pickup Pass & Receipt</div>
+                <div className="font-bold">Active Pickup Pass</div>
                 <div className="text-[11px] text-amber-900 mt-0.5">
-                  Show this QR code at the kitchen dispatch door for instant verification.
+                  Show this QR code or 4-digit OTP at dispatch for instant verification.
                 </div>
               </div>
             </div>
@@ -106,7 +106,7 @@ export const ClaimConfirmationModal: React.FC<ClaimConfirmationModalProps> = ({
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2.5 shadow-2xs">
             <div className="flex items-center justify-between border-b border-slate-200 pb-2">
               <div>
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">Rescue Voucher</span>
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">Voucher ID</span>
                 <span className="font-mono text-sm font-bold text-slate-900">{claim.id}</span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -132,7 +132,7 @@ export const ClaimConfirmationModal: React.FC<ClaimConfirmationModalProps> = ({
 
             {/* Food Title & Quantity */}
             <div>
-              <div className="text-[11px] text-slate-500 font-medium">Claimed Food Item:</div>
+              <div className="text-[11px] text-slate-500 font-medium">Claimed Item:</div>
               <div className="font-bold text-slate-900 text-sm mt-0.5 leading-snug">
                 {claim.foodTitle}
               </div>
@@ -154,12 +154,12 @@ export const ClaimConfirmationModal: React.FC<ClaimConfirmationModalProps> = ({
               </div>
             </div>
 
-            {/* Trust / Recipient Information */}
+            {/* Recipient Information */}
             <div className="pt-2 border-t border-slate-200/80">
-              <div className="text-[10px] text-slate-500">Beneficiary / Claimed For:</div>
+              <div className="text-[10px] text-slate-500">Recipient:</div>
               <div className="font-semibold text-slate-800 flex items-center gap-1 mt-0.5">
                 <HeartHandshake className="w-3.5 h-3.5 text-emerald-600" />
-                <span>{claim.trustName || 'Anbu Karangal Children Trust & Orphanage'}</span>
+                <span>{claim.trustName || 'Community Recipient'}</span>
               </div>
             </div>
           </div>
@@ -199,10 +199,10 @@ export const ClaimConfirmationModal: React.FC<ClaimConfirmationModalProps> = ({
 
             <div>
               <span className="text-[11px] font-bold text-slate-700 block">
-                Digital Pass for Optical Scanner
+                Digital Pickup Pass
               </span>
               <span className="text-[10px] text-slate-500">
-                Hold up to Mandapam / Donor scanner at pickup gate
+                Show to donor at collection gate
               </span>
             </div>
           </div>
@@ -255,10 +255,10 @@ export const ClaimConfirmationModal: React.FC<ClaimConfirmationModalProps> = ({
                 type="button"
                 onClick={() => onSimulatePickup(claim.id)}
                 className="flex-1 py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-sm"
-                title="Simulate Mandapam / Donor scanning this QR code"
+                title="Simulate scanning this pass"
               >
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>Confirm Handover (Donor Scan)</span>
+                <span>Simulate Handover Scan</span>
               </button>
 
               <button

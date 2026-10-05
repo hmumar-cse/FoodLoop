@@ -27,7 +27,7 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
   now,
   onClose,
   onClaim,
-  defaultTrustName = 'Anbu Karangal Children Trust & Orphanage',
+  defaultTrustName = 'Community Recipient',
 }) => {
   if (!item) return null;
 
@@ -175,13 +175,13 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
           <div className="border border-slate-200 rounded-xl p-3 bg-white space-y-1">
             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
               <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Mandapam / Hall Address</span>
+              <span>Pickup Location</span>
             </div>
             <div className="text-xs text-slate-800 font-semibold">
               {item.pickupAddress}
             </div>
             <div className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-200/80 mt-1 leading-relaxed">
-              <strong>Kitchen Note:</strong> {item.pickupInstructions}
+              <strong>Instructions:</strong> {item.pickupInstructions}
             </div>
           </div>
 
@@ -197,16 +197,16 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
               className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-200 transition-colors shrink-0"
             >
               <Phone className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Call Lead</span>
+              <span>Call</span>
             </a>
           </div>
 
-          {/* Trust / Orphanage Claim Name & Portion Selector */}
+          {/* Recipient Claim Name & Portion Selector */}
           {!isOutOfStock && !isExpired && (
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
               <div>
                 <label className="block text-xs font-bold text-slate-800 mb-1">
-                  Orphanage / Trust / Beneficiary Name
+                  Recipient / Organization Name
                 </label>
                 <div className="relative">
                   <HeartHandshake className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-600" />
@@ -214,7 +214,7 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
                     type="text"
                     value={trustNameInput}
                     onChange={(e) => setTrustNameInput(e.target.value)}
-                    placeholder="Enter trust, orphanage, or volunteer name"
+                    placeholder="Enter recipient or organization name"
                     className="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>

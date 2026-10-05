@@ -26,9 +26,9 @@ export const AddFoodModal: React.FC<AddFoodModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  const [title, setTitle] = useState('Kalyana Biryani Feast with Ennai Kathirikai & Raitha');
+  const [title, setTitle] = useState('Chicken Biryani & Raitha');
   const [category, setCategory] = useState<FoodCategory>('Cooked Meals');
-  const [donorName, setDonorName] = useState('Sri Krishna Gana Sabha Kalyana Mandapam');
+  const [donorName, setDonorName] = useState('Sri Krishna Gana Hall');
   const [donorType, setDonorType] = useState<DonorType>('Kalyana Mandapam (Marriage Hall)');
   const [quantity, setQuantity] = useState(50);
   const [unit, setUnit] = useState('meals');
@@ -36,12 +36,12 @@ export const AddFoodModal: React.FC<AddFoodModalProps> = ({
   const [pickupStart] = useState('3:00 PM');
   const [pickupEnd] = useState('5:00 PM');
   const [pickupAddress, setPickupAddress] = useState('20, Maharajapuram Santhanam Salai, T. Nagar, Chennai - 600017');
-  const [pickupInstructions, setPickupInstructions] = useState('Report to Dining Hall Kitchen Rear Gate. Ask for Master Caterer Senthil. Bring thermal carrier drums.');
+  const [pickupInstructions, setPickupInstructions] = useState('Kitchen rear gate dispatch. Ask for Master Cook Senthil. Bring thermal carrier drums.');
   const [temperatureStatus, setTemperatureStatus] = useState('Maintained in hot-holding stainless steel vessels at 65°C');
   const [selectedPhoto, setSelectedPhoto] = useState(PHOTO_PRESETS[0].url);
   const [isCustomPhoto, setIsCustomPhoto] = useState(false);
   const [customPhotoName, setCustomPhotoName] = useState('');
-  const [dietaryInput, setDietaryInput] = useState('Halal, Authentic Seeraga Samba, Nut-Free');
+  const [dietaryInput, setDietaryInput] = useState('Halal Chicken, Seeraga Samba, Hot & Fresh');
   const [distanceKm] = useState(0.9);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -94,34 +94,34 @@ export const AddFoodModal: React.FC<AddFoodModalProps> = ({
   const applyPreset = (presetType: 'biryani' | 'meals' | 'tiffin' | 'bakery') => {
     setIsCustomPhoto(false);
     if (presetType === 'biryani') {
-      setTitle('Kalyana Biryani Feast with Ennai Kathirikai & Onion Raitha');
+      setTitle('Chicken Biryani & Raitha');
       setCategory('Cooked Meals');
       setQuantity(60);
       setUnit('meals');
       setHoursUntilExpiry(1.5);
       setSelectedPhoto(PHOTO_PRESETS[0].url);
       setDietaryInput('Halal Chicken, Seeraga Samba, Hot & Fresh');
-      setTemperatureStatus('Hot in sealed stainless steel degh/vessels (>65°C)');
+      setTemperatureStatus('Hot in sealed stainless steel vessels (>65°C)');
     } else if (presetType === 'meals') {
-      setTitle('South Indian Full Meals: Sambar Rice, Poriyal, Kootu & Payasam');
+      setTitle('South Indian Full Meals');
       setCategory('Cooked Meals');
       setQuantity(50);
       setUnit('meal sets');
       setHoursUntilExpiry(2.0);
       setSelectedPhoto(PHOTO_PRESETS[1].url);
-      setDietaryInput('Pure Vegetarian, Satvik, Banana Leaf Accompaniments');
-      setTemperatureStatus('Freshly cooked; kept in thermal hot insulated containers');
+      setDietaryInput('Pure Vegetarian, Satvik, Fresh Sambar');
+      setTemperatureStatus('Freshly cooked; kept in thermal hot containers');
     } else if (presetType === 'tiffin') {
-      setTitle('Evening Engagement Tiffin: Ghee Ven Pongal, Medu Vadai & Sambar');
+      setTitle('Ghee Pongal & Medu Vadai');
       setCategory('Cooked Meals');
       setQuantity(40);
       setUnit('tiffin sets');
       setHoursUntilExpiry(1.2);
       setSelectedPhoto(PHOTO_PRESETS[3].url);
-      setDietaryInput('Vegetarian, Crispy Vadai, Pure Ghee Pongal');
+      setDietaryInput('Vegetarian, Crispy Vadai, Pure Ghee');
       setTemperatureStatus('Warm in food service warmers');
     } else if (presetType === 'bakery') {
-      setTitle('Fresh Bakery Evening Surplus: Veg Puffs, Mysore Pak & Milk Bread');
+      setTitle('Veg Puffs & Mysore Pak');
       setCategory('Baked Goods');
       setQuantity(35);
       setUnit('boxes');
@@ -188,9 +188,9 @@ export const AddFoodModal: React.FC<AddFoodModalProps> = ({
               <PlusCircle className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-bold">Post Surplus Food Batch</h3>
+              <h3 className="text-base font-bold">Post Surplus Food</h3>
               <p className="text-[11px] text-slate-400">
-                Instantly broadcast surplus to local orphanages and trusts
+                Broadcast surplus food to nearby recipients in real-time
               </p>
             </div>
           </div>
@@ -205,11 +205,11 @@ export const AddFoodModal: React.FC<AddFoodModalProps> = ({
 
         {/* Scrollable Form Body */}
         <form onSubmit={handleSubmit} className="p-4 sm:p-5 overflow-y-auto space-y-3.5 text-xs">
-          {/* Tamil Nadu Quick Preset Chips */}
+          {/* Quick Preset Chips */}
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1">
               <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Quick Tamil Food Presets (Click to autofill)</span>
+              <span>Quick Presets:</span>
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
               <button
@@ -217,14 +217,14 @@ export const AddFoodModal: React.FC<AddFoodModalProps> = ({
                 onClick={() => applyPreset('biryani')}
                 className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 text-left transition-colors font-semibold"
               >
-                🍛 Kalyana Biryani
+                🍛 Chicken Biryani
               </button>
               <button
                 type="button"
                 onClick={() => applyPreset('meals')}
                 className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 text-left transition-colors font-semibold"
               >
-                🍱 Full Meals & Sambar
+                🍱 Full Meals
               </button>
               <button
                 type="button"
@@ -252,7 +252,7 @@ export const AddFoodModal: React.FC<AddFoodModalProps> = ({
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Kalyana Biryani Feast, Sambar Rice, Pongal Vadai"
+              placeholder="e.g. Chicken Biryani, Full Meals, Pongal Vadai"
               className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               required
             />
@@ -262,31 +262,31 @@ export const AddFoodModal: React.FC<AddFoodModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
-                Mandapam / Donor Name
+                Donor / Venue Name
               </label>
               <input
                 type="text"
                 value={donorName}
                 onChange={(e) => setDonorName(e.target.value)}
-                placeholder="e.g. Sri Krishna Kalyana Mandapam, T. Nagar"
+                placeholder="e.g. Sri Krishna Hall, T. Nagar"
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
-                Donor Category
+                Category
               </label>
               <select
                 value={donorType}
                 onChange={(e) => setDonorType(e.target.value as DonorType)}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
-                <option value="Kalyana Mandapam (Marriage Hall)">Kalyana Mandapam (Marriage Hall)</option>
-                <option value="Temple Annadhanam Trust">Temple Annadhanam Trust</option>
-                <option value="Hotel & Banquet Hall">Hotel & Banquet Hall</option>
-                <option value="Corporate IT Canteen">Corporate IT Canteen</option>
-                <option value="Bakery & Sweet Stall">Bakery & Sweet Stall</option>
+                <option value="Kalyana Mandapam (Marriage Hall)">Banquet & Marriage Hall</option>
+                <option value="Temple Annadhanam Trust">Community Kitchen & Temple</option>
+                <option value="Hotel & Banquet Hall">Hotel & Restaurant</option>
+                <option value="Corporate IT Canteen">Corporate Canteen</option>
+                <option value="Bakery & Sweet Stall">Bakery & Sweets</option>
                 <option value="Catering Service">Catering Service</option>
               </select>
             </div>

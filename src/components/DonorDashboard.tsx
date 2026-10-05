@@ -44,18 +44,18 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-950/80 border border-emerald-800/80 px-2 py-0.5 rounded-md">
-                Tamil Nadu Mandapam & Donor Hub
+                Donor Dashboard
               </span>
               <span className="inline-flex items-center gap-1 text-[11px] text-slate-300">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                Verified Entity
+                Verified Donor
               </span>
             </div>
             <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white">
-              Kalyana Mandapam & Catering Surplus Management
+              Surplus Food Management
             </h2>
             <p className="text-xs text-slate-400 mt-0.5 max-w-md">
-              Publish excess wedding feasts, temple annadhanam, or canteen batches to nearby orphanages and trusts in minutes.
+              Publish excess meals and verify recipient pickups with live QR scanning and OTP codes.
             </p>
           </div>
 
@@ -66,15 +66,15 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition-all"
             >
               <PlusCircle className="w-4 h-4" />
-              <span>+ Add Surplus Food</span>
+              <span>+ Post Surplus Food</span>
             </button>
 
             <button
               onClick={onOpenScanModal}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 text-xs font-bold transition-all"
             >
               <Scan className="w-4 h-4 text-emerald-400" />
-              <span>Scan QR Pass</span>
+              <span>Verify / Scan Pass</span>
               {pendingClaims.length > 0 && (
                 <span className="w-4 h-4 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-extrabold flex items-center justify-center ml-0.5">
                   {pendingClaims.length}
@@ -95,13 +95,13 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
           <div className="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
             <span className="text-[10px] text-slate-400 block font-medium">Meals Available</span>
             <span className="text-lg font-bold text-emerald-400 mt-0.5 block">{totalActiveServings}</span>
-            <span className="text-[9px] text-slate-500">Ready for rescue</span>
+            <span className="text-[9px] text-slate-500">Ready for pickup</span>
           </div>
 
           <div className="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
             <span className="text-[10px] text-slate-400 block font-medium">Meals Handed Over</span>
             <span className="text-lg font-bold text-amber-400 mt-0.5 block">{rescuedMealsCount}</span>
-            <span className="text-[9px] text-slate-500">Distributed to trusts</span>
+            <span className="text-[9px] text-slate-500">Successfully verified</span>
           </div>
         </div>
       </div>
@@ -113,11 +113,11 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
               <h3 className="text-sm font-bold text-amber-950">
-                Incoming Trust Pickups & Claims ({pendingClaims.length})
+                Incoming Pickups & Claims ({pendingClaims.length})
               </h3>
             </div>
             <span className="text-[11px] text-amber-800 font-medium">
-              Awaiting verification at kitchen gate
+              Awaiting verification at dispatch
             </span>
           </div>
 
@@ -141,7 +141,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
                   </div>
                   <div className="text-[11px] text-slate-600 mt-1 flex items-center gap-1.5">
                     <HeartHandshake className="w-3.5 h-3.5 text-emerald-600" />
-                    <span><strong>{claim.trustName || 'Anbu Orphan Trust'}</strong> • {claim.servingsClaimed} Meals reserved</span>
+                    <span><strong>{claim.trustName || 'Recipient'}</strong> • {claim.servingsClaimed} Meals reserved</span>
                   </div>
                 </div>
 

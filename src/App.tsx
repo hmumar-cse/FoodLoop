@@ -73,16 +73,16 @@ function App() {
     addToast(`Location set to ${city}`, 'info');
   }, []);
 
-  // Food Items State (Always initialized with authentic Tamil Nadu items if storage is empty or reset)
+  // Food Items State (Always initialized with authentic clean Tamil Nadu items)
   const [foodItems, setFoodItems] = useState<FoodItem[]>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.FOOD_ITEMS);
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Check if it's already localized (e.g. contains 'Biryani' or 'Tamil' or 'Mandapam')
-          const isLocalized = parsed.some(item => item.title.includes('Biryani') || item.title.includes('Sambar') || item.title.includes('Tamil') || item.title.includes('Pongal'));
-          if (isLocalized) return parsed;
+          // If already clean short titles
+          const isClean = parsed.some(item => item.title === 'Chicken Biryani & Raitha' || item.title === 'South Indian Full Meals');
+          if (isClean) return parsed;
         }
       }
       return INITIAL_FOOD_ITEMS;
@@ -123,9 +123,9 @@ function App() {
     setCurrentRole(role);
     localStorage.setItem(STORAGE_KEYS.ROLE, role);
     if (role === 'donor') {
-      addToast('Switched to Kalyana Mandapam & Donor Hub', 'info');
+      addToast('Switched to Donor View', 'info');
     } else {
-      addToast('Switched to Orphanage & Trust Recipient Feed', 'info');
+      addToast('Switched to Recipient Feed', 'info');
     }
   }, []);
 
@@ -196,7 +196,7 @@ function App() {
   const handleClaimItem = useCallback((item: FoodItem, servings: number, trustName?: string) => {
     const claimId = generateClaimId();
     const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
-    const effectiveTrust = trustName || currentUser?.organizationName || 'Anbu Karangal Children Trust & Orphanage';
+    const effectiveTrust = trustName || currentUser?.organizationName || 'Community Recipient';
     
     const qrPayload = JSON.stringify({
       claimId,
@@ -223,7 +223,7 @@ function App() {
       qrPayload,
       verificationCode,
       trustName: effectiveTrust,
-      recipientName: currentUser?.name || 'Trust Coordinator',
+      recipientName: currentUser?.name || 'Recipient Coordinator',
     };
 
     setClaims((prev) => [newClaim, ...prev]);

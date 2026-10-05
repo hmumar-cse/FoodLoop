@@ -108,7 +108,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               </div>
               <p className="text-[10px] sm:text-[11px] text-slate-300 font-normal leading-tight truncate">
-                Kalyana Mandapam & Annadhanam Surplus Rescue
+                Surplus Food Rescue Network
               </p>
             </div>
           </div>
@@ -121,7 +121,7 @@ export const Header: React.FC<HeaderProps> = ({
               className="relative flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 text-xs font-semibold transition-colors"
             >
               <Ticket className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Receipts</span>
+              <span>Passes</span>
               {activeClaimsCount > 0 && (
                 <span className="w-4 h-4 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-extrabold flex items-center justify-center ml-0.5">
                   {activeClaimsCount}
@@ -172,7 +172,7 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               <HeartHandshake className="w-3.5 h-3.5" />
-              <span>Orphanage / Trust / Recipient</span>
+              <span>Recipient (Claim Food)</span>
             </button>
             <button
               onClick={() => onRoleChange('donor')}
@@ -183,7 +183,7 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               <Building2 className="w-3.5 h-3.5" />
-              <span>Mandapam / Donor Hub</span>
+              <span>Donor (Post Surplus)</span>
             </button>
           </div>
 
