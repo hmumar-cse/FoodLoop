@@ -47,20 +47,45 @@ function App() {
     setCurrentRole(user.role);
     localStorage.setItem(STORAGE_KEYS.ROLE, user.role);
     setShowLoginModal(false);
-    addToast(`Welcome back, ${user.name}!`, 'success');
+    addToast(`Welcome, ${user.name}! Connected to ${user.organizationName || 'FoodLoop TN'}`, 'success');
   }, []);
 
   const handleLogout = useCallback(() => {
     setCurrentUser(null);
     localStorage.removeItem(STORAGE_KEYS.USER);
     setCurrentRole('recipient');
-    addToast('You have been signed out.', 'info');
+    addToast('Signed out successfully.', 'info');
   }, []);
 
+  // Location / City state (Tamil Nadu)
+  const [selectedCity, setSelectedCity] = useState<string>(() => {
+    try {
+      const stored = localStorage.getItem('foodloop_city_v1');
+      return stored || 'T. Nagar, Chennai';
+    } catch {
+      return 'T. Nagar, Chennai';
+    }
+  });
+
+  const handleChangeCity = useCallback((city: string) => {
+    setSelectedCity(city);
+    localStorage.setItem('foodloop_city_v1', city);
+    addToast(`Location set to ${city}`, 'info');
+  }, []);
+
+  // Food Items State (Always initialized with authentic Tamil Nadu items if storage is empty or reset)
   const [foodItems, setFoodItems] = useState<FoodItem[]>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.FOOD_ITEMS);
-      return stored ? JSON.parse(stored) : INITIAL_FOOD_ITEMS;
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Check if it's already localized (e.g. contains 'Biryani' or 'Tamil' or 'Mandapam')
+          const isLocalized = parsed.some(item => item.title.includes('Biryani') || item.title.includes('Sambar') || item.title.includes('Tamil') || item.title.includes('Pongal'));
+          if (isLocalized) return parsed;
+        }
+      }
+      return INITIAL_FOOD_ITEMS;
     } catch {
       return INITIAL_FOOD_ITEMS;
     }
@@ -70,6 +95,7 @@ function App() {
     localStorage.setItem(STORAGE_KEYS.FOOD_ITEMS, JSON.stringify(foodItems));
   }, [foodItems]);
 
+  // Claims / Receipts State
   const [claims, setClaims] = useState<Claim[]>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.CLAIMS);
@@ -83,6 +109,7 @@ function App() {
     localStorage.setItem(STORAGE_KEYS.CLAIMS, JSON.stringify(claims));
   }, [claims]);
 
+  // Role State (Default: recipient for orphanages and trusts)
   const [currentRole, setCurrentRole] = useState<UserRole>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.ROLE);
@@ -93,14 +120,14 @@ function App() {
   });
 
   const handleRoleChange = useCallback((role: UserRole) => {
-    if (!currentUser) {
-      setShowLoginModal(true);
-      addToast('Please sign in to switch roles.', 'info');
-      return;
-    }
     setCurrentRole(role);
     localStorage.setItem(STORAGE_KEYS.ROLE, role);
-  }, [currentUser]);
+    if (role === 'donor') {
+      addToast('Switched to Kalyana Mandapam & Donor Hub', 'info');
+    } else {
+      addToast('Switched to Orphanage & Trust Recipient Feed', 'info');
+    }
+  }, []);
 
   const [selectedCategory, setSelectedCategory] = useState<FoodCategory | 'All'>('All');
   const [selectedSort, setSelectedSort] = useState<SortOption>('smart_match');
@@ -165,18 +192,17 @@ function App() {
       }
     });
 
-  const handleClaimItem = useCallback((item: FoodItem, servings: number) => {
-    if (!currentUser) {
-      setShowLoginModal(true);
-      addToast('Please sign in to claim food.', 'info');
-      return;
-    }
-
+  // Seamless Claim & Instant Receipt Creation
+  const handleClaimItem = useCallback((item: FoodItem, servings: number, trustName?: string) => {
     const claimId = generateClaimId();
+    const effectiveTrust = trustName || currentUser?.organizationName || 'Anbu Karangal Children Trust & Orphanage';
+    
     const qrPayload = JSON.stringify({
       claimId,
       foodItemId: item.id,
       servings,
+      trustName: effectiveTrust,
+      donor: item.donorName,
       timestamp: Date.now(),
     });
 
@@ -193,6 +219,8 @@ function App() {
       pickupWindow: item.pickupWindow,
       status: 'pending',
       qrPayload,
+      trustName: effectiveTrust,
+      recipientName: currentUser?.name || 'Trust Coordinator',
     };
 
     setClaims((prev) => [newClaim, ...prev]);
@@ -206,28 +234,35 @@ function App() {
 
     setSelectedFoodItem(null);
     setActiveClaim(newClaim);
-    addToast(`Claimed ${servings} ${item.unit} successfully!`, 'success');
+    addToast(`Successfully reserved ${servings} meals for ${effectiveTrust}!`, 'success');
   }, [currentUser]);
 
+  // Handover / Pickup Verification
   const handleConfirmPickup = useCallback((claimId: string): { success: boolean; message: string; claim?: Claim } => {
-    const claim = claims.find((c) => c.id === claimId);
+    const claim = claims.find((c) => c.id.toUpperCase() === claimId.toUpperCase());
     if (!claim) {
-      return { success: false, message: 'Claim not found.' };
+      return { success: false, message: 'Claim Voucher ID not found. Please check the code.' };
     }
     if (claim.status === 'collected') {
-      return { success: false, message: 'This claim has already been collected.' };
+      return { success: false, message: 'This pickup voucher has already been marked as collected.' };
     }
     if (claim.status === 'cancelled') {
-      return { success: false, message: 'This claim was cancelled.' };
+      return { success: false, message: 'This reservation was cancelled.' };
     }
 
     const updatedClaim = { ...claim, status: 'collected' as const };
     setClaims((prev) =>
-      prev.map((c) => (c.id === claimId ? updatedClaim : c))
+      prev.map((c) => (c.id === claim.id ? updatedClaim : c))
     );
-    addToast(`Pickup confirmed for ${claim.foodTitle}.`, 'success');
-    return { success: true, message: 'Pickup confirmed successfully.', claim: updatedClaim };
-  }, [claims]);
+    
+    // Update active modal claim if viewing it
+    if (activeClaim && activeClaim.id === claim.id) {
+      setActiveClaim(updatedClaim);
+    }
+
+    addToast(`Handover confirmed for ${claim.foodTitle} (${claim.servingsClaimed} meals)!`, 'success');
+    return { success: true, message: `Handover confirmed for ${claim.trustName || 'Trust'}. ${claim.servingsClaimed} meals verified.`, claim: updatedClaim };
+  }, [claims, activeClaim]);
 
   const handleCancelClaim = useCallback((claimId: string) => {
     const claim = claims.find((c) => c.id === claimId);
@@ -243,7 +278,7 @@ function App() {
           : fi
       )
     );
-    addToast('Claim cancelled. Servings returned to pool.', 'info');
+    addToast('Reservation cancelled. Portions returned to live feed.', 'info');
   }, [claims]);
 
   const handlePublishFood = useCallback((newItemData: Omit<FoodItem, 'id' | 'createdAt'>) => {
@@ -254,12 +289,12 @@ function App() {
     };
     setFoodItems((prev) => [newItem, ...prev]);
     setShowAddFoodModal(false);
-    addToast(`"${newItem.title}" published to the feed.`, 'success');
+    addToast(`"${newItem.title}" published to live Tamil Nadu feed!`, 'success');
   }, []);
 
   const handleDeleteListing = useCallback((id: string) => {
     setFoodItems((prev) => prev.filter((fi) => fi.id !== id));
-    addToast('Listing removed.', 'info');
+    addToast('Surplus batch removed.', 'info');
   }, []);
 
   const handleResetData = useCallback(() => {
@@ -267,7 +302,7 @@ function App() {
     setClaims([]);
     localStorage.removeItem(STORAGE_KEYS.FOOD_ITEMS);
     localStorage.removeItem(STORAGE_KEYS.CLAIMS);
-    addToast('Data reset to defaults.', 'info');
+    addToast('Reset feed to Tamil Nadu Kalyana Mandapam & Annadhanam dishes.', 'success');
   }, []);
 
   const pendingClaims = claims.filter((c) => c.status === 'pending');
@@ -281,14 +316,7 @@ function App() {
           currentRole={currentRole}
           onRoleChange={handleRoleChange}
           activeClaimsCount={activeClaimsCount}
-          onOpenMyClaims={() => {
-            if (!currentUser) {
-              setShowLoginModal(true);
-              addToast('Please sign in to view your claims.', 'info');
-              return;
-            }
-            setShowMyClaimsModal(true);
-          }}
+          onOpenMyClaims={() => setShowMyClaimsModal(true)}
           onOpenLegal={(tab) => setLegalTab(tab)}
           userDistanceRadius={userDistanceRadius}
           onChangeRadius={handleChangeRadius}
@@ -296,9 +324,11 @@ function App() {
           currentUser={currentUser}
           onLoginClick={() => setShowLoginModal(true)}
           onLogout={handleLogout}
+          selectedCity={selectedCity}
+          onChangeCity={handleChangeCity}
         />
 
-        {/* ─── Recipient View ──────────────────────────────────────────── */}
+        {/* ─── Recipient View (Orphanages, Trusts & Neighbours) ──────────────── */}
         {currentRole === 'recipient' && (
           <main className="flex-1 pb-10">
             <FilterBar
@@ -313,10 +343,16 @@ function App() {
 
             <div className="px-3 sm:px-4 space-y-3 mt-3">
               {filteredItems.length === 0 ? (
-                <div className="text-center py-16 px-4">
-                  <div className="text-4xl mb-3">🍽</div>
-                  <p className="text-slate-700 text-sm font-semibold">No food listings match your filters.</p>
-                  <p className="text-slate-500 text-xs mt-1">Try widening your search radius or clearing category filters.</p>
+                <div className="text-center py-16 px-4 bg-white rounded-2xl border border-slate-200 mx-1">
+                  <div className="text-4xl mb-2">🍛</div>
+                  <p className="text-slate-800 text-sm font-bold">No surplus food batches match your filter.</p>
+                  <p className="text-slate-500 text-xs mt-1 mb-3">Try widening your search radius or clearing category filters.</p>
+                  <button
+                    onClick={handleResetData}
+                    className="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-xs"
+                  >
+                    Load Tamil Nadu Surplus Dishes
+                  </button>
                 </div>
               ) : (
                 filteredItems.map((item) => (
@@ -332,39 +368,19 @@ function App() {
           </main>
         )}
 
-        {/* ─── Donor View ──────────────────────────────────────────────── */}
+        {/* ─── Donor View (Kalyana Mandapams, Hotels & Annadhanam Trusts) ───── */}
         {currentRole === 'donor' && (
-          <main className="flex-1 pb-10">
-            {!currentUser ? (
-              <div className="text-center py-16 px-6">
-                <div className="w-16 h-16 rounded-2xl bg-slate-200/80 flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                  </svg>
-                </div>
-                <p className="text-slate-800 font-bold text-base mb-1">Sign in to manage listings</p>
-                <p className="text-slate-500 text-xs mb-4">Donor tools require verified authentication.</p>
-                <button
-                  onClick={() => setShowLoginModal(true)}
-                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-sm transition-colors"
-                >
-                  Sign In to Donor Hub
-                </button>
-              </div>
-            ) : (
-              <DonorDashboard
-                foodItems={foodItems}
-                claims={claims}
-                now={now}
-                onOpenAddModal={() => setShowAddFoodModal(true)}
-                onOpenScanModal={() => setShowScanQRModal(true)}
-                onDeleteListing={handleDeleteListing}
-                onSelectListing={(fi) => setSelectedFoodItem(fi)}
-              />
-            )}
+          <main className="flex-1 pb-10 p-3 sm:p-4">
+            <DonorDashboard
+              foodItems={foodItems}
+              claims={claims}
+              now={now}
+              onOpenAddModal={() => setShowAddFoodModal(true)}
+              onOpenScanModal={() => setShowScanQRModal(true)}
+              onDeleteListing={handleDeleteListing}
+              onSelectListing={(fi) => setSelectedFoodItem(fi)}
+              onConfirmPickup={(id) => handleConfirmPickup(id)}
+            />
           </main>
         )}
       </div>
@@ -382,6 +398,7 @@ function App() {
         now={now}
         onClose={() => setSelectedFoodItem(null)}
         onClaim={handleClaimItem}
+        defaultTrustName={currentUser?.organizationName || 'Anbu Karangal Children Trust & Orphanage'}
       />
 
       <ClaimConfirmationModal

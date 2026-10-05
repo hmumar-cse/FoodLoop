@@ -8,7 +8,8 @@ import {
   User, 
   Globe,
   LogIn,
-  LogOut
+  LogOut,
+  HeartHandshake
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -23,6 +24,8 @@ interface HeaderProps {
   currentUser: AppUser | null;
   onLoginClick: () => void;
   onLogout: () => void;
+  selectedCity: string;
+  onChangeCity: (city: string) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -37,6 +40,8 @@ export const Header: React.FC<HeaderProps> = ({
   currentUser,
   onLoginClick,
   onLogout,
+  selectedCity,
+  onChangeCity,
 }) => {
   return (
     <header className="sticky top-0 z-30 bg-slate-900 text-white shadow-md border-b border-slate-800 pt-[env(safe-area-inset-top,0px)]">
@@ -53,7 +58,7 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="font-semibold">foodloop.app</span>
           </button>
           <span className="text-slate-600">|</span>
-          <span className="text-slate-400 hidden xs:inline">Certified Surplus Rescue</span>
+          <span className="text-slate-400 hidden xs:inline">Tamil Nadu Surplus Rescue</span>
         </div>
 
         <div className="flex items-center gap-2.5 sm:gap-3">
@@ -71,7 +76,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
           <button
             onClick={onResetData}
-            title="Reset Mock Data"
+            title="Reset to Tamil Nadu Mock Food Items"
             className="text-slate-400 hover:text-amber-400 transition-colors flex items-center gap-1 py-0.5 px-1"
           >
             <RotateCcw className="w-3 h-3" />
@@ -99,32 +104,30 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="flex items-center gap-1.5">
                 <h1 className="text-lg sm:text-xl font-bold tracking-tight text-white m-0 truncate">FoodLoop</h1>
                 <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-semibold px-1.5 py-0.2 rounded border border-emerald-500/30">
-                  LIVE
+                  TAMIL NADU
                 </span>
               </div>
               <p className="text-[10px] sm:text-[11px] text-slate-300 font-normal leading-tight truncate">
-                Rescue surplus. Break waste.
+                Kalyana Mandapam & Annadhanam Surplus Rescue
               </p>
             </div>
           </div>
 
-          {/* Right side: Claims & Auth Buttons */}
+          {/* Right side: Claims Receipts & Auth Buttons */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Recipient Quick Claims Badge */}
-            {currentRole === 'recipient' && currentUser && (
-              <button
-                onClick={onOpenMyClaims}
-                className="relative flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 text-xs font-medium transition-colors"
-              >
-                <Ticket className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="hidden xs:inline">Claims</span>
-                {activeClaimsCount > 0 && (
-                  <span className="w-4 h-4 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-bold flex items-center justify-center">
-                    {activeClaimsCount}
-                  </span>
-                )}
-              </button>
-            )}
+            {/* My Receipts / Claims Badge */}
+            <button
+              onClick={onOpenMyClaims}
+              className="relative flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 text-xs font-semibold transition-colors"
+            >
+              <Ticket className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Receipts</span>
+              {activeClaimsCount > 0 && (
+                <span className="w-4 h-4 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-extrabold flex items-center justify-center ml-0.5">
+                  {activeClaimsCount}
+                </span>
+              )}
+            </button>
 
             {/* Auth Button */}
             {currentUser ? (
@@ -141,7 +144,7 @@ export const Header: React.FC<HeaderProps> = ({
                   className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-rose-900/50 border border-slate-700 hover:border-rose-700 text-slate-400 hover:text-rose-300 text-xs font-medium transition-colors"
                 >
                   <LogOut className="w-3.5 h-3.5" />
-                  <span className="hidden xs:inline">Sign Out</span>
+                  <span className="hidden sm:inline">Sign Out</span>
                 </button>
               </div>
             ) : (
@@ -168,8 +171,8 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'text-slate-300 hover:text-white'
               }`}
             >
-              <User className="w-3.5 h-3.5" />
-              <span>Recipient / Neighbour</span>
+              <HeartHandshake className="w-3.5 h-3.5" />
+              <span>Orphanage / Trust / Recipient</span>
             </button>
             <button
               onClick={() => onRoleChange('donor')}
@@ -180,29 +183,44 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               <Building2 className="w-3.5 h-3.5" />
-              <span>Donor Hub</span>
+              <span>Mandapam / Donor Hub</span>
             </button>
           </div>
 
-          {/* User Location Indicator */}
+          {/* Tamil Nadu Location Indicator */}
           <div className="flex items-center justify-between gap-2 text-[11px] sm:text-xs text-slate-300 bg-slate-800/80 px-2.5 py-1.5 rounded-lg border border-slate-700/80">
             <div className="flex items-center gap-1.5 truncate">
               <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              <span className="truncate">
-                Near <strong className="text-white font-medium">Metro Center</strong> (within {userDistanceRadius} km)
-              </span>
+              <span className="text-slate-400">Area:</span>
+              <select
+                value={selectedCity}
+                onChange={(e) => onChangeCity(e.target.value)}
+                className="bg-slate-900 text-white font-medium border border-slate-700 rounded px-1.5 py-0.5 text-xs focus:outline-none focus:border-emerald-500 cursor-pointer"
+              >
+                <option value="T. Nagar, Chennai">T. Nagar, Chennai</option>
+                <option value="Mylapore, Chennai">Mylapore, Chennai</option>
+                <option value="Anna Nagar, Chennai">Anna Nagar, Chennai</option>
+                <option value="RS Puram, Coimbatore">RS Puram, Coimbatore</option>
+                <option value="Meenakshi Temple, Madurai">Meenakshi Temple, Madurai</option>
+                <option value="Thillai Nagar, Trichy">Thillai Nagar, Trichy</option>
+                <option value="Salem Junction">Salem Junction</option>
+              </select>
             </div>
-            <select
-              value={userDistanceRadius}
-              onChange={(e) => onChangeRadius(Number(e.target.value))}
-              className="bg-slate-900 text-emerald-400 border border-slate-700 rounded px-1.5 py-0.5 text-xs focus:outline-none focus:border-emerald-500 cursor-pointer shrink-0"
-              title="Change search radius"
-            >
-              <option value={1.5}>1.5 km</option>
-              <option value={3.0}>3.0 km</option>
-              <option value={5.0}>5.0 km</option>
-              <option value={10.0}>10.0 km</option>
-            </select>
+
+            <div className="flex items-center gap-1 shrink-0">
+              <span className="text-slate-400 text-[10px]">Radius:</span>
+              <select
+                value={userDistanceRadius}
+                onChange={(e) => onChangeRadius(Number(e.target.value))}
+                className="bg-slate-900 text-emerald-400 border border-slate-700 rounded px-1.5 py-0.5 text-xs focus:outline-none focus:border-emerald-500 cursor-pointer"
+                title="Change search radius"
+              >
+                <option value={1.5}>1.5 km</option>
+                <option value={3.0}>3.0 km</option>
+                <option value={5.0}>5.0 km</option>
+                <option value={10.0}>10.0 km</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>

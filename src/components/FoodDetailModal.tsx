@@ -7,18 +7,19 @@ import {
   MapPin, 
   ShieldCheck, 
   Phone, 
-  User, 
   Thermometer, 
   Minus, 
   Plus, 
-  Navigation
+  Navigation,
+  HeartHandshake
 } from 'lucide-react';
 
 interface FoodDetailModalProps {
   item: FoodItem | null;
   now: number;
   onClose: () => void;
-  onClaim: (item: FoodItem, servings: number) => void;
+  onClaim: (item: FoodItem, servings: number, trustName?: string) => void;
+  defaultTrustName?: string;
 }
 
 export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
@@ -26,39 +27,41 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
   now,
   onClose,
   onClaim,
+  defaultTrustName = 'Anbu Karangal Children Trust & Orphanage',
 }) => {
   if (!item) return null;
 
-  const [claimServings, setClaimServings] = useState<number>(1);
+  const [claimServings, setClaimServings] = useState<number>(Math.min(20, item.quantityRemaining));
+  const [trustNameInput, setTrustNameInput] = useState<string>(defaultTrustName);
   const urgency = getUrgencyInfo(item.expiryTimestamp, now);
   const isOutOfStock = item.quantityRemaining <= 0;
   const isExpired = urgency.level === 'expired';
 
   const handleIncrement = () => {
     if (claimServings < item.quantityRemaining) {
-      setClaimServings((prev) => prev + 1);
+      setClaimServings((prev) => prev + (item.quantityRemaining > 10 ? 5 : 1));
     }
   };
 
   const handleDecrement = () => {
     if (claimServings > 1) {
-      setClaimServings((prev) => prev - 1);
+      setClaimServings((prev) => Math.max(1, prev - (item.quantityRemaining > 10 ? 5 : 1)));
     }
   };
 
   const handleClaimNow = () => {
     if (isOutOfStock || isExpired) return;
-    onClaim(item, claimServings);
+    onClaim(item, claimServings, trustNameInput.trim() || defaultTrustName);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
       <div 
-        className="bg-white w-full max-w-lg rounded-2xl shadow-xl border border-slate-200 overflow-hidden max-h-[92vh] flex flex-col"
+        className="bg-white w-full max-w-lg rounded-2xl shadow-xl border border-slate-200 overflow-hidden max-h-[94vh] flex flex-col my-auto text-left"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header Image & Close Button */}
-        <div className="relative h-52 sm:h-56 w-full bg-slate-900 shrink-0">
+        <div className="relative h-48 sm:h-56 w-full bg-slate-900 shrink-0">
           <img
             src={item.imageUrl}
             alt={item.title}
@@ -86,32 +89,32 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
 
           {/* Category Tag & Quantity Bottom Overlay */}
           <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs">
-            <span className="px-2.5 py-1 rounded-lg bg-emerald-600 font-semibold shadow-xs">
+            <span className="px-2.5 py-1 rounded-lg bg-emerald-600 font-bold shadow-xs">
               {item.category}
             </span>
-            <span className="px-2.5 py-1 rounded-lg bg-slate-900/90 font-medium backdrop-blur-xs">
+            <span className="px-2.5 py-1 rounded-lg bg-slate-900/90 font-bold backdrop-blur-xs">
               {item.quantityRemaining} {item.unit} available
             </span>
           </div>
         </div>
 
         {/* Scrollable Content Body */}
-        <div className="p-4 sm:p-5 overflow-y-auto space-y-4">
+        <div className="p-4 sm:p-5 overflow-y-auto space-y-3.5">
           {/* Title & Verified Entity */}
           <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-xs font-semibold text-slate-700">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs font-bold text-slate-700">
                 {item.donorName}
               </span>
               {item.isVerifiedDonor && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                   Verified Donor
                 </span>
               )}
             </div>
 
-            <h2 className="text-xl font-bold text-slate-900 leading-snug">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 leading-snug">
               {item.title}
             </h2>
           </div>
@@ -122,7 +125,7 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
               {item.dietaryTags.map((tag) => (
                 <span
                   key={tag}
-                  className="px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200"
+                  className="px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200"
                 >
                   {tag}
                 </span>
@@ -131,11 +134,11 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
           )}
 
           {/* Food Safety & Temperature Status */}
-          <div className="bg-emerald-50/80 border border-emerald-200 rounded-xl p-3 flex items-start gap-2.5 text-xs text-emerald-950">
+          <div className="bg-emerald-50/90 border border-emerald-200 rounded-xl p-3 flex items-start gap-2.5 text-xs text-emerald-950">
             <Thermometer className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
             <div>
-              <div className="font-semibold text-emerald-900">Food Safety & Temperature Control</div>
-              <div className="text-emerald-800 mt-0.5">{item.temperatureStatus}</div>
+              <div className="font-bold text-emerald-900">Food Safety & Quality Assurance</div>
+              <div className="text-emerald-800 text-[11px] mt-0.5">{item.temperatureStatus}</div>
             </div>
           </div>
 
@@ -149,112 +152,125 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
               <div className="text-xs font-bold text-slate-900">
                 {item.pickupWindow.start} – {item.pickupWindow.end}
               </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">
-                Must be collected before window closes
+              <div className="text-[10px] text-slate-500 mt-0.5">
+                Collect before dispatch closes
               </div>
             </div>
 
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
               <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mb-1">
                 <Navigation className="w-3.5 h-3.5 text-slate-400" />
-                <span>Distance</span>
+                <span>Proximity</span>
               </div>
               <div className="text-xs font-bold text-slate-900">
                 {item.distanceKm} km away
               </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">
-                Approx 4–6 mins by bike / vehicle
+              <div className="text-[10px] text-slate-500 mt-0.5">
+                ~5 mins by vehicle
               </div>
             </div>
           </div>
 
           {/* Detailed Pickup Instructions */}
-          <div className="border border-slate-200 rounded-xl p-3 bg-white">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 mb-1.5">
-              <MapPin className="w-4 h-4 text-emerald-600" />
-              <span>Pickup Location & Directions</span>
+          <div className="border border-slate-200 rounded-xl p-3 bg-white space-y-1">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+              <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Mandapam / Hall Address</span>
             </div>
-            <div className="text-xs text-slate-800 font-medium mb-1.5">
+            <div className="text-xs text-slate-800 font-semibold">
               {item.pickupAddress}
             </div>
-            <div className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-200/80 leading-relaxed">
-              <strong>Staff Note:</strong> {item.pickupInstructions}
+            <div className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-200/80 mt-1 leading-relaxed">
+              <strong>Kitchen Note:</strong> {item.pickupInstructions}
             </div>
           </div>
 
-          {/* Donor Contact Card */}
+          {/* Donor Contact */}
           <div className="border border-slate-200 rounded-xl p-3 bg-white flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
-                <User className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="text-xs font-bold text-slate-900">{item.donorContact.name}</div>
-                <div className="text-[11px] text-slate-500">{item.donorContact.department || 'Dispatch Lead'}</div>
-              </div>
+            <div>
+              <div className="text-xs font-bold text-slate-900">{item.donorContact.name}</div>
+              <div className="text-[11px] text-slate-500">{item.donorContact.department} • {item.donorContact.phone}</div>
             </div>
 
             <a
               href={`tel:${item.donorContact.phone}`}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium border border-slate-200 transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-200 transition-colors shrink-0"
             >
               <Phone className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Call Contact</span>
+              <span>Call Lead</span>
             </a>
           </div>
 
-          {/* Portion Stepper */}
+          {/* Trust / Orphanage Claim Name & Portion Selector */}
           {!isOutOfStock && !isExpired && (
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
               <div>
-                <span className="text-xs font-bold text-slate-900 block">
-                  Select Portions to Claim
-                </span>
-                <span className="text-[11px] text-slate-500">
-                  Please only claim what you can rescue and consume
-                </span>
+                <label className="block text-xs font-bold text-slate-800 mb-1">
+                  Orphanage / Trust / Beneficiary Name
+                </label>
+                <div className="relative">
+                  <HeartHandshake className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-600" />
+                  <input
+                    type="text"
+                    value={trustNameInput}
+                    onChange={(e) => setTrustNameInput(e.target.value)}
+                    placeholder="Enter trust, orphanage, or volunteer name"
+                    className="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
               </div>
 
-              <div className="flex items-center gap-2.5 bg-white border border-slate-200 rounded-lg p-1 shadow-2xs">
-                <button
-                  type="button"
-                  onClick={handleDecrement}
-                  disabled={claimServings <= 1}
-                  className="w-7 h-7 rounded-md bg-slate-100 disabled:opacity-40 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors"
-                >
-                  <Minus className="w-3.5 h-3.5" />
-                </button>
+              <div className="flex items-center justify-between pt-2 border-t border-slate-200">
+                <div>
+                  <span className="text-xs font-bold text-slate-900 block">
+                    Portions Needed
+                  </span>
+                  <span className="text-[10px] text-slate-500">
+                    Max: {item.quantityRemaining} {item.unit}
+                  </span>
+                </div>
 
-                <span className="w-7 text-center font-bold text-slate-900 text-sm">
-                  {claimServings}
-                </span>
+                <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-1 shadow-2xs">
+                  <button
+                    type="button"
+                    onClick={handleDecrement}
+                    disabled={claimServings <= 1}
+                    className="w-7 h-7 rounded-md bg-slate-100 disabled:opacity-40 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors font-bold"
+                  >
+                    <Minus className="w-3.5 h-3.5" />
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={handleIncrement}
-                  disabled={claimServings >= item.quantityRemaining}
-                  className="w-7 h-7 rounded-md bg-slate-100 disabled:opacity-40 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                </button>
+                  <span className="w-10 text-center font-bold text-slate-900 text-sm">
+                    {claimServings}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={handleIncrement}
+                    disabled={claimServings >= item.quantityRemaining}
+                    className="w-7 h-7 rounded-md bg-slate-100 disabled:opacity-40 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors font-bold"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
           )}
         </div>
 
         {/* Modal Footer CTA */}
-        <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center gap-3 shrink-0">
+        <div className="p-3.5 sm:p-4 bg-slate-50 border-t border-slate-200 flex items-center gap-3 shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-100 transition-colors"
+            className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-100 transition-colors"
           >
             Cancel
           </button>
 
           {isOutOfStock ? (
             <div className="flex-1 py-2.5 rounded-xl bg-slate-200 text-slate-600 text-center text-xs font-bold">
-              All Portions Claimed
+              All Meals Claimed
             </div>
           ) : isExpired ? (
             <div className="flex-1 py-2.5 rounded-xl bg-rose-100 text-rose-700 text-center text-xs font-bold">
@@ -266,9 +282,9 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
               onClick={handleClaimNow}
               className="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
             >
-              <span>CLAIM NOW</span>
+              <span>CLAIM & GENERATE RECEIPT</span>
               <span className="text-xs bg-emerald-700 px-2 py-0.5 rounded-md font-semibold">
-                {claimServings} {claimServings === 1 ? 'Portion' : 'Portions'}
+                {claimServings} {claimServings === 1 ? 'Meal' : 'Meals'}
               </span>
             </button>
           )}

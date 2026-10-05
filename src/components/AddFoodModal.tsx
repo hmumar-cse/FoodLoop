@@ -4,12 +4,9 @@ import { PHOTO_PRESETS } from '../data/mockData';
 import { 
   X, 
   PlusCircle, 
-  Clock, 
-  ShieldCheck, 
   Check, 
-  Sparkles,
   Thermometer,
-  MapPin
+  Sparkles
 } from 'lucide-react';
 
 interface AddFoodModalProps {
@@ -25,23 +22,62 @@ export const AddFoodModal: React.FC<AddFoodModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState('Kalyana Biryani Feast with Ennai Kathirikai & Raitha');
   const [category, setCategory] = useState<FoodCategory>('Cooked Meals');
-  const [donorName, setDonorName] = useState('Grand Hyatt Regency & Banquets');
-  const [donorType, setDonorType] = useState<DonorType>('Hotel Banquet');
-  const [isVerifiedDonor, setIsVerifiedDonor] = useState(true);
-  const [quantity, setQuantity] = useState(30);
+  const [donorName, setDonorName] = useState('Sri Krishna Gana Sabha Kalyana Mandapam');
+  const [donorType, setDonorType] = useState<DonorType>('Kalyana Mandapam (Marriage Hall)');
+  const [quantity, setQuantity] = useState(50);
   const [unit, setUnit] = useState('meals');
-  const [hoursUntilExpiry, setHoursUntilExpiry] = useState(1.5);
-  const [pickupStart, setPickupStart] = useState('8:00 PM');
-  const [pickupEnd, setPickupEnd] = useState('9:30 PM');
-  const [pickupAddress, setPickupAddress] = useState('500 Grand Bay Boulevard, Kitchen Service Gate 2');
-  const [pickupInstructions, setPickupInstructions] = useState('Report to Kitchen Steward Door. Ask for Sous Chef Carlos. Bring clean insulated carry bags.');
-  const [temperatureStatus, setTemperatureStatus] = useState('Kept in hot-holding units at 65°C / 149°F');
+  const [hoursUntilExpiry, setHoursUntilExpiry] = useState(2.0);
+  const [pickupStart] = useState('3:00 PM');
+  const [pickupEnd] = useState('5:00 PM');
+  const [pickupAddress, setPickupAddress] = useState('20, Maharajapuram Santhanam Salai, T. Nagar, Chennai - 600017');
+  const [pickupInstructions, setPickupInstructions] = useState('Report to Dining Hall Kitchen Rear Gate. Ask for Master Caterer Senthil. Bring thermal carrier drums.');
+  const [temperatureStatus, setTemperatureStatus] = useState('Maintained in hot-holding stainless steel vessels at 65°C');
   const [selectedPhoto, setSelectedPhoto] = useState(PHOTO_PRESETS[0].url);
-  const [customPhotoUrl, setCustomPhotoUrl] = useState('');
-  const [dietaryInput, setDietaryInput] = useState('Halal, Vegetarian Options');
-  const [distanceKm, setDistanceKm] = useState(1.1);
+  const [dietaryInput, setDietaryInput] = useState('Halal, Authentic Seeraga Samba, Nut-Free');
+  const [distanceKm] = useState(0.9);
+
+  // Quick Preset Selector for Tamil Nadu Donors
+  const applyPreset = (presetType: 'biryani' | 'meals' | 'tiffin' | 'bakery') => {
+    if (presetType === 'biryani') {
+      setTitle('Kalyana Biryani Feast with Ennai Kathirikai & Onion Raitha');
+      setCategory('Cooked Meals');
+      setQuantity(60);
+      setUnit('meals');
+      setHoursUntilExpiry(1.5);
+      setSelectedPhoto(PHOTO_PRESETS[0].url);
+      setDietaryInput('Halal Chicken, Seeraga Samba, Hot & Fresh');
+      setTemperatureStatus('Hot in sealed stainless steel degh/vessels (>65°C)');
+    } else if (presetType === 'meals') {
+      setTitle('South Indian Full Meals: Sambar Rice, Poriyal, Kootu & Payasam');
+      setCategory('Cooked Meals');
+      setQuantity(50);
+      setUnit('meal sets');
+      setHoursUntilExpiry(2.0);
+      setSelectedPhoto(PHOTO_PRESETS[1].url);
+      setDietaryInput('Pure Vegetarian, Satvik, Banana Leaf Accompaniments');
+      setTemperatureStatus('Freshly cooked; kept in thermal hot insulated containers');
+    } else if (presetType === 'tiffin') {
+      setTitle('Evening Engagement Tiffin: Ghee Ven Pongal, Medu Vadai & Sambar');
+      setCategory('Cooked Meals');
+      setQuantity(40);
+      setUnit('tiffin sets');
+      setHoursUntilExpiry(1.2);
+      setSelectedPhoto(PHOTO_PRESETS[3].url);
+      setDietaryInput('Vegetarian, Crispy Vadai, Pure Ghee Pongal');
+      setTemperatureStatus('Warm in food service warmers');
+    } else if (presetType === 'bakery') {
+      setTitle('Fresh Bakery Evening Surplus: Veg Puffs, Mysore Pak & Milk Bread');
+      setCategory('Baked Goods');
+      setQuantity(35);
+      setUnit('boxes');
+      setHoursUntilExpiry(3.0);
+      setSelectedPhoto(PHOTO_PRESETS[5].url);
+      setDietaryInput('Vegetarian, Ghee Sweets, Baked Fresh');
+      setTemperatureStatus('Ambient bakery temperature, packed today');
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,16 +92,14 @@ export const AddFoodModal: React.FC<AddFoodModalProps> = ({
       .map((s) => s.trim())
       .filter(Boolean);
 
-    const finalPhoto = customPhotoUrl.trim() || selectedPhoto;
-
     onPublish({
       title: title.trim(),
       category,
-      donorName: donorName.trim() || 'Verified Donor Partner',
+      donorName: donorName.trim() || 'Verified Tamil Nadu Mandapam / Donor',
       donorType,
-      isVerifiedDonor,
-      quantityRemaining: quantity,
-      initialQuantity: quantity,
+      isVerifiedDonor: true,
+      quantityRemaining: Number(quantity) || 30,
+      initialQuantity: Number(quantity) || 30,
       unit,
       distanceKm: Number(distanceKm) || 1.0,
       expiryTimestamp,
@@ -76,346 +110,253 @@ export const AddFoodModal: React.FC<AddFoodModalProps> = ({
       pickupAddress: pickupAddress.trim(),
       pickupInstructions: pickupInstructions.trim(),
       donorContact: {
-        name: 'Carlos Ruiz',
-        phone: '+1 (555) 789-0123',
-        department: 'Banquets & Culinary Dispatch',
+        name: 'K. Ramanathan (Mandapam Lead)',
+        phone: '+91 94440 12890',
+        department: 'Wedding Catering & Hall Operations',
       },
-      dietaryTags: dietaryTags.length > 0 ? dietaryTags : ['Ready to Eat'],
+      dietaryTags: dietaryTags.length > 0 ? dietaryTags : ['Hot & Fresh Meals'],
       temperatureStatus: temperatureStatus.trim(),
-      imageUrl: finalPhoto,
+      imageUrl: selectedPhoto,
     });
 
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
       <div 
-        className="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden max-h-[92vh] flex flex-col"
+        className="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden max-h-[94vh] flex flex-col my-auto text-left"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-slate-900 text-white px-5 py-4 flex items-center justify-between shrink-0">
+        <div className="bg-slate-900 text-white px-4 sm:px-5 py-3.5 flex items-center justify-between shrink-0 border-b border-slate-800">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
-              <PlusCircle className="w-5 h-5" />
+              <PlusCircle className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-bold">List Surplus Food</h3>
-              <p className="text-xs text-slate-400">
-                Rescue excess catering, hotel trays, or bakery production
+              <h3 className="text-base font-bold">Post Surplus Food Batch</h3>
+              <p className="text-[11px] text-slate-400">
+                Instantly broadcast surplus to local orphanages and trusts
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-colors"
+            className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Scrollable Form */}
-        <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-4 text-xs">
-          {/* Food Title */}
+        {/* Scrollable Form Body */}
+        <form onSubmit={handleSubmit} className="p-4 sm:p-5 overflow-y-auto space-y-3.5 text-xs">
+          {/* Tamil Nadu Quick Preset Chips */}
           <div>
-            <label className="block font-bold text-slate-800 mb-1">
-              Surplus Food Title *
+            <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <span>Quick Tamil Food Presets (Click to autofill)</span>
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+              <button
+                type="button"
+                onClick={() => applyPreset('biryani')}
+                className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 text-left transition-colors font-semibold"
+              >
+                🍛 Kalyana Biryani
+              </button>
+              <button
+                type="button"
+                onClick={() => applyPreset('meals')}
+                className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 text-left transition-colors font-semibold"
+              >
+                🍱 Full Meals & Sambar
+              </button>
+              <button
+                type="button"
+                onClick={() => applyPreset('tiffin')}
+                className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 text-left transition-colors font-semibold"
+              >
+                🫓 Pongal & Vadai
+              </button>
+              <button
+                type="button"
+                onClick={() => applyPreset('bakery')}
+                className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 text-left transition-colors font-semibold"
+              >
+                🥐 Puffs & Sweets
+              </button>
+            </div>
+          </div>
+
+          {/* Title */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">
+              Food Title / Description *
             </label>
             <input
               type="text"
-              required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Wedding Reception Buffet: 40 Gourmet Chicken & Herb Rice Portions"
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white text-xs sm:text-sm"
+              placeholder="e.g. Kalyana Biryani Feast, Sambar Rice, Pongal Vadai"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+              required
             />
           </div>
 
-          {/* Category & Entity Type */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Donor Entity Name & Type */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
-              <label className="block font-bold text-slate-800 mb-1">
-                Category *
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Mandapam / Donor Name
               </label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value as FoodCategory)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-              >
-                <option value="Cooked Meals">Cooked Meals (Warm/Buffet/Bento)</option>
-                <option value="Baked Goods">Baked Goods (Breads/Pastries)</option>
-                <option value="Packaged Foods">Packaged Foods (Deli/Boxes/Sealed)</option>
-              </select>
+              <input
+                type="text"
+                value={donorName}
+                onChange={(e) => setDonorName(e.target.value)}
+                placeholder="e.g. Sri Krishna Kalyana Mandapam, T. Nagar"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
             </div>
 
             <div>
-              <label className="block font-bold text-slate-800 mb-1">
-                Donor Entity Type *
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Donor Category
               </label>
               <select
                 value={donorType}
                 onChange={(e) => setDonorType(e.target.value as DonorType)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
-                <option value="Wedding Event">Wedding Event Hall</option>
-                <option value="Hotel Banquet">Hotel Banquet & Convention</option>
-                <option value="Corporate Canteen">Corporate Canteen</option>
-                <option value="Artisan Bakery">Artisan Bakery</option>
-                <option value="Community Kitchen">Community Kitchen</option>
+                <option value="Kalyana Mandapam (Marriage Hall)">Kalyana Mandapam (Marriage Hall)</option>
+                <option value="Temple Annadhanam Trust">Temple Annadhanam Trust</option>
+                <option value="Hotel & Banquet Hall">Hotel & Banquet Hall</option>
+                <option value="Corporate IT Canteen">Corporate IT Canteen</option>
+                <option value="Bakery & Sweet Stall">Bakery & Sweet Stall</option>
+                <option value="Catering Service">Catering Service</option>
               </select>
             </div>
           </div>
 
-          {/* Donor Name & Verified Badge Toggle */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-            <div className="sm:col-span-2">
-              <label className="block font-bold text-slate-800 mb-1">
-                Donor Organization Name *
-              </label>
-              <input
-                type="text"
-                required
-                value={donorName}
-                onChange={(e) => setDonorName(e.target.value)}
-                placeholder="e.g. Grand Hyatt Regency Banquets"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-              />
-            </div>
-
-            <div className="flex items-center gap-2 p-2 bg-emerald-50/70 border border-emerald-200 rounded-xl h-[38px]">
-              <input
-                type="checkbox"
-                id="verifiedEntity"
-                checked={isVerifiedDonor}
-                onChange={(e) => setIsVerifiedDonor(e.target.checked)}
-                className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 border-slate-300"
-              />
-              <label htmlFor="verifiedEntity" className="font-semibold text-emerald-900 cursor-pointer flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Verified Entity</span>
-              </label>
-            </div>
-          </div>
-
-          {/* Servings & Deadline Setter */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+          {/* Servings, Expiry & Category */}
+          <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="block font-bold text-slate-800 mb-1">
-                Available Servings / Quantity *
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="1"
-                  max="1000"
-                  required
-                  value={quantity}
-                  onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-24 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-900 font-bold"
-                />
-                <select
-                  value={unit}
-                  onChange={(e) => setUnit(e.target.value)}
-                  className="px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-900 font-medium"
-                >
-                  <option value="meals">meals</option>
-                  <option value="portions">portions</option>
-                  <option value="boxes">boxes</option>
-                  <option value="items">items</option>
-                </select>
-                <div className="flex gap-1 ml-auto">
-                  {[15, 30, 50].map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => setQuantity(preset)}
-                      className="px-1.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded text-[11px] font-semibold text-slate-700"
-                    >
-                      {preset}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="block font-bold text-slate-800 mb-1 flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-amber-600" />
-                <span>Expiry / Rescue Deadline *</span>
-              </label>
-              <div className="flex items-center gap-2">
-                <select
-                  value={hoursUntilExpiry}
-                  onChange={(e) => setHoursUntilExpiry(parseFloat(e.target.value))}
-                  className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-900 font-medium"
-                >
-                  <option value={0.75}>45 mins (Urgent - Red)</option>
-                  <option value={1.5}>1 hour 30 mins (High - Yellow)</option>
-                  <option value={2.5}>2 hours 30 mins (Normal - Green)</option>
-                  <option value={4.0}>4 hours (Extended)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Pickup Window & Proximity */}
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="block font-bold text-slate-800 mb-1">
-                Pickup Start
-              </label>
-              <input
-                type="text"
-                value={pickupStart}
-                onChange={(e) => setPickupStart(e.target.value)}
-                placeholder="e.g. 8:00 PM"
-                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900"
-              />
-            </div>
-            <div>
-              <label className="block font-bold text-slate-800 mb-1">
-                Pickup End
-              </label>
-              <input
-                type="text"
-                value={pickupEnd}
-                onChange={(e) => setPickupEnd(e.target.value)}
-                placeholder="e.g. 9:30 PM"
-                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900"
-              />
-            </div>
-            <div>
-              <label className="block font-bold text-slate-800 mb-1 flex items-center gap-1">
-                <MapPin className="w-3 h-3 text-emerald-600" />
-                <span>Radius (km)</span>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Quantity (Servings)
               </label>
               <input
                 type="number"
-                step="0.1"
-                min="0.1"
-                max="20"
-                value={distanceKm}
-                onChange={(e) => setDistanceKm(parseFloat(e.target.value) || 1.0)}
-                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900"
-              />
-            </div>
-          </div>
-
-          {/* Location & Instructions */}
-          <div>
-            <label className="block font-bold text-slate-800 mb-1">
-              Pickup Address & Specific Entrance *
-            </label>
-            <input
-              type="text"
-              required
-              value={pickupAddress}
-              onChange={(e) => setPickupAddress(e.target.value)}
-              placeholder="e.g. 500 Grand Bay Boulevard, Kitchen Service Gate 2"
-              className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 mb-2"
-            />
-
-            <label className="block font-bold text-slate-800 mb-1">
-              Staff Instructions for Recipient
-            </label>
-            <textarea
-              rows={2}
-              value={pickupInstructions}
-              onChange={(e) => setPickupInstructions(e.target.value)}
-              placeholder="e.g. Ring bell at staff door. Ask for Chef Carlos. Bring clean insulated bags."
-              className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 resize-none"
-            />
-          </div>
-
-          {/* Food Safety & Dietary */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block font-bold text-slate-800 mb-1 flex items-center gap-1">
-                <Thermometer className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Temperature Control *</span>
-              </label>
-              <input
-                type="text"
-                value={temperatureStatus}
-                onChange={(e) => setTemperatureStatus(e.target.value)}
-                placeholder="e.g. Kept in hot-holding units at 65°C / 149°F"
-                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900"
+                min="1"
+                max="500"
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
 
             <div>
-              <label className="block font-bold text-slate-800 mb-1">
-                Dietary Tags (comma-separated)
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Unit
               </label>
               <input
                 type="text"
-                value={dietaryInput}
-                onChange={(e) => setDietaryInput(e.target.value)}
-                placeholder="e.g. Halal, Vegetarian, Nut-Free"
-                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900"
+                value={unit}
+                onChange={(e) => setUnit(e.target.value)}
+                placeholder="meals / packets"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Expiry (Hours Left)
+              </label>
+              <select
+                value={hoursUntilExpiry}
+                onChange={(e) => setHoursUntilExpiry(Number(e.target.value))}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                <option value={0.75}>45 mins (Flash Rescue)</option>
+                <option value={1.5}>1.5 hours</option>
+                <option value={2.5}>2.5 hours</option>
+                <option value={4.0}>4 hours</option>
+              </select>
             </div>
           </div>
 
           {/* Photo Selector */}
           <div>
-            <label className="block font-bold text-slate-800 mb-1.5">
-              Select Curated Real Food Photo
+            <label className="block text-xs font-bold text-slate-700 mb-1">
+              Select Food Photo
             </label>
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-2">
-              {PHOTO_PRESETS.slice(0, 4).map((preset, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => {
-                    setSelectedPhoto(preset.url);
-                    setCustomPhotoUrl('');
-                  }}
-                  className={`relative h-18 rounded-lg overflow-hidden border-2 cursor-pointer transition-all ${
-                    selectedPhoto === preset.url && !customPhotoUrl
-                      ? 'border-emerald-600 ring-2 ring-emerald-500/30'
-                      : 'border-slate-200 hover:border-slate-300'
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              {PHOTO_PRESETS.slice(0, 4).map((preset) => (
+                <button
+                  key={preset.url}
+                  type="button"
+                  onClick={() => setSelectedPhoto(preset.url)}
+                  className={`relative rounded-lg overflow-hidden h-16 border-2 transition-all ${
+                    selectedPhoto === preset.url
+                      ? 'border-emerald-500 ring-2 ring-emerald-500/30'
+                      : 'border-slate-200 opacity-70 hover:opacity-100'
                   }`}
                 >
                   <img src={preset.url} alt={preset.label} className="w-full h-full object-cover" />
-                  {selectedPhoto === preset.url && !customPhotoUrl && (
-                    <div className="absolute top-1 right-1 bg-emerald-600 text-white rounded-full p-0.5">
+                  {selectedPhoto === preset.url && (
+                    <div className="absolute top-1 right-1 bg-emerald-600 text-white rounded-full p-0.5 shadow-sm">
                       <Check className="w-3 h-3" />
                     </div>
                   )}
-                  <span className="absolute bottom-0 inset-x-0 bg-slate-950/70 text-white text-[9px] px-1 py-0.5 truncate text-center">
-                    {preset.category}
-                  </span>
-                </div>
+                </button>
               ))}
             </div>
+          </div>
 
-            {/* Custom Photo URL Fallback */}
+          {/* Pickup Address & Directions */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">
+              Pickup Address & Kitchen Gate Instructions
+            </label>
             <input
-              type="url"
-              value={customPhotoUrl}
-              onChange={(e) => setCustomPhotoUrl(e.target.value)}
-              placeholder="Or paste custom image URL (e.g. https://...)"
-              className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs"
+              type="text"
+              value={pickupAddress}
+              onChange={(e) => setPickupAddress(e.target.value)}
+              placeholder="e.g. 20, Maharajapuram Santhanam Salai, T. Nagar, Chennai"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 mb-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+            <textarea
+              rows={2}
+              value={pickupInstructions}
+              onChange={(e) => setPickupInstructions(e.target.value)}
+              placeholder="Instructions for trust volunteers (e.g. Contact cook Ramanathan at back gate)"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
 
-          {/* Form Actions */}
-          <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2.5">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 transition-colors"
-            >
-              Cancel
-            </button>
+          {/* Food Safety Note */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1">
+              <Thermometer className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Food Temperature & Safety Note</span>
+            </label>
+            <input
+              type="text"
+              value={temperatureStatus}
+              onChange={(e) => setTemperatureStatus(e.target.value)}
+              placeholder="e.g. Hot holding stainless steel container at 65°C"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+
+          {/* Submit Button */}
+          <div className="pt-2">
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 text-xs sm:text-sm"
+              className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md transition-colors flex items-center justify-center gap-2"
             >
-              <Sparkles className="w-4 h-4" />
-              <span>Publish Listing to Live Feed</span>
+              <PlusCircle className="w-4 h-4" />
+              <span>PUBLISH SURPLUS FOOD TO LIVE FEED</span>
             </button>
           </div>
         </form>

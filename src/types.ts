@@ -1,6 +1,12 @@
 export type FoodCategory = 'Cooked Meals' | 'Baked Goods' | 'Packaged Foods';
 
-export type DonorType = 'Wedding Event' | 'Hotel Banquet' | 'Corporate Canteen' | 'Artisan Bakery' | 'Community Kitchen';
+export type DonorType = 
+  | 'Kalyana Mandapam (Marriage Hall)' 
+  | 'Temple Annadhanam Trust' 
+  | 'Hotel & Banquet Hall' 
+  | 'Corporate IT Canteen' 
+  | 'Bakery & Sweet Stall'
+  | 'Catering Service';
 
 export interface FoodItem {
   id: string;
@@ -32,7 +38,7 @@ export interface FoodItem {
 }
 
 export interface Claim {
-  id: string; // e.g. FL-8492-XQ
+  id: string; // e.g. FL-8492-TN
   foodItemId: string;
   foodTitle: string;
   donorName: string;
@@ -47,6 +53,9 @@ export interface Claim {
   };
   status: 'pending' | 'collected' | 'cancelled' | 'expired';
   qrPayload: string;
+  recipientName?: string;
+  trustName?: string;
+  recipientPhone?: string;
 }
 
 export type UserRole = 'recipient' | 'donor';
@@ -58,4 +67,6 @@ export interface AppUser {
   name: string;
   email: string;
   role: UserRole;
+  organizationName?: string;
+  phone?: string;
 }
