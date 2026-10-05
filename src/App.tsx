@@ -274,8 +274,9 @@ function App() {
   const activeClaimsCount = pendingClaims.length;
 
   return (
-    <div className="min-h-dvh bg-slate-50">
-      <div className="max-w-lg mx-auto bg-white min-h-dvh shadow-sm border-x border-slate-200">
+    <div className="min-h-screen bg-slate-950 flex flex-col justify-start">
+      {/* Mobile-Native Responsive Container */}
+      <div className="w-full max-w-md mx-auto bg-slate-50 min-h-screen flex flex-col shadow-2xl relative pb-[env(safe-area-inset-bottom,20px)]">
         <Header
           currentRole={currentRole}
           onRoleChange={handleRoleChange}
@@ -297,8 +298,9 @@ function App() {
           onLogout={handleLogout}
         />
 
+        {/* ─── Recipient View ──────────────────────────────────────────── */}
         {currentRole === 'recipient' && (
-          <main className="pb-8">
+          <main className="flex-1 pb-10">
             <FilterBar
               selectedCategory={selectedCategory}
               onSelectCategory={setSelectedCategory}
@@ -309,12 +311,12 @@ function App() {
               totalCount={filteredItems.length}
             />
 
-            <div className="px-4 space-y-3 mt-3">
+            <div className="px-3 sm:px-4 space-y-3 mt-3">
               {filteredItems.length === 0 ? (
                 <div className="text-center py-16 px-4">
                   <div className="text-4xl mb-3">🍽</div>
-                  <p className="text-slate-500 text-sm font-medium">No food listings match your filters.</p>
-                  <p className="text-slate-400 text-xs mt-1">Try widening your search radius or clearing filters.</p>
+                  <p className="text-slate-700 text-sm font-semibold">No food listings match your filters.</p>
+                  <p className="text-slate-500 text-xs mt-1">Try widening your search radius or clearing category filters.</p>
                 </div>
               ) : (
                 filteredItems.map((item) => (
@@ -330,25 +332,26 @@ function App() {
           </main>
         )}
 
+        {/* ─── Donor View ──────────────────────────────────────────────── */}
         {currentRole === 'donor' && (
-          <main className="pb-8">
+          <main className="flex-1 pb-10">
             {!currentUser ? (
               <div className="text-center py-16 px-6">
-                <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <div className="w-16 h-16 rounded-2xl bg-slate-200/80 flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                     <circle cx="9" cy="7" r="4" />
                     <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
                     <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                   </svg>
                 </div>
-                <p className="text-slate-700 font-semibold text-base mb-1">Sign in to manage listings</p>
-                <p className="text-slate-500 text-sm mb-4">Donor features require authentication.</p>
+                <p className="text-slate-800 font-bold text-base mb-1">Sign in to manage listings</p>
+                <p className="text-slate-500 text-xs mb-4">Donor tools require verified authentication.</p>
                 <button
                   onClick={() => setShowLoginModal(true)}
-                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg transition-colors"
+                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-sm transition-colors"
                 >
-                  Sign In
+                  Sign In to Donor Hub
                 </button>
               </div>
             ) : (
@@ -365,6 +368,8 @@ function App() {
           </main>
         )}
       </div>
+
+      {/* ─── Modals ──────────────────────────────────────────────────── */}
 
       <LoginModal
         isOpen={showLoginModal}
@@ -416,16 +421,17 @@ function App() {
         onClose={() => setLegalTab(null)}
       />
 
-      <div className="fixed bottom-4 right-4 z-[60] flex flex-col gap-2 pointer-events-none">
+      {/* ─── Toast Notifications ─────────────────────────────────────── */}
+      <div className="fixed bottom-6 right-4 left-4 sm:left-auto z-[60] flex flex-col gap-2 pointer-events-none items-center sm:items-end">
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`pointer-events-auto px-4 py-3 rounded-lg shadow-lg text-sm font-medium text-white max-w-xs animate-[slideIn_0.2s_ease-out] ${
+            className={`pointer-events-auto px-4 py-3 rounded-xl shadow-xl text-xs sm:text-sm font-semibold text-white max-w-sm w-full sm:w-auto text-center sm:text-left transition-all ${
               toast.type === 'success'
                 ? 'bg-emerald-600'
                 : toast.type === 'error'
                 ? 'bg-rose-600'
-                : 'bg-slate-700'
+                : 'bg-slate-800'
             }`}
           >
             {toast.message}
