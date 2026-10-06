@@ -109,6 +109,28 @@ function App() {
     localStorage.setItem(STORAGE_KEYS.CLAIMS, JSON.stringify(claims));
   }, [claims]);
 
+  // Real-time synchronization across multiple browser tabs / windows on the same network/session
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEYS.CLAIMS && e.newValue) {
+        try {
+          setClaims(JSON.parse(e.newValue));
+        } catch {
+          // Ignore parse errors
+        }
+      }
+      if (e.key === STORAGE_KEYS.FOOD_ITEMS && e.newValue) {
+        try {
+          setFoodItems(JSON.parse(e.newValue));
+        } catch {
+          // Ignore parse errors
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   // Role State (Default: recipient for orphanages and trusts)
   const [currentRole, setCurrentRole] = useState<UserRole>(() => {
     try {
@@ -250,21 +272,45 @@ function App() {
     // Attempt to parse QR code JSON payload if scanned
     let targetClaimId = cleanInput;
     let targetOtp = cleanInput;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let parsedPayload: any = null;
     try {
       if (cleanInput.startsWith('{') && cleanInput.endsWith('}')) {
-        const parsed = JSON.parse(cleanInput);
-        if (parsed.claimId) targetClaimId = parsed.claimId;
-        if (parsed.verificationCode) targetOtp = parsed.verificationCode;
+        parsedPayload = JSON.parse(cleanInput);
+        if (parsedPayload.claimId) targetClaimId = parsedPayload.claimId;
+        if (parsedPayload.verificationCode) targetOtp = parsedPayload.verificationCode;
       }
     } catch {
       // Plain text code
     }
 
-    const claim = claims.find((c) => 
+    let claim = claims.find((c) => 
       c.id.toUpperCase() === targetClaimId.toUpperCase() ||
       (c.verificationCode && c.verificationCode === targetOtp) ||
       (c.id.replace(/-/g, '').toUpperCase() === cleanInput.replace(/-/g, '').toUpperCase())
     );
+
+    // Cross-Device Instant Verification: If scanned from another phone/device via QR code
+    if (!claim && parsedPayload && parsedPayload.claimId) {
+      const matchedFood = foodItems.find(f => f.id === parsedPayload.foodItemId) || foodItems[0];
+      claim = {
+        id: parsedPayload.claimId,
+        foodItemId: parsedPayload.foodItemId || (matchedFood ? matchedFood.id : 'food-001'),
+        foodTitle: matchedFood ? matchedFood.title : 'Surplus Food Batch',
+        donorName: parsedPayload.donor || (matchedFood ? matchedFood.donorName : 'Verified Donor'),
+        servingsClaimed: parsedPayload.servings || 10,
+        claimedAt: parsedPayload.timestamp || Date.now(),
+        expiryTimestamp: Date.now() + 2 * 3600 * 1000,
+        pickupAddress: matchedFood ? matchedFood.pickupAddress : 'Donor Kitchen Gate',
+        pickupInstructions: matchedFood ? matchedFood.pickupInstructions : 'Present pass at pickup gate.',
+        pickupWindow: matchedFood ? matchedFood.pickupWindow : { start: 'Now', end: 'Today' },
+        status: 'pending',
+        qrPayload: cleanInput,
+        verificationCode: parsedPayload.verificationCode || parsedPayload.claimId.slice(-4),
+        trustName: parsedPayload.trustName || 'Community Recipient',
+        recipientName: 'Verified Recipient',
+      };
+    }
 
     if (!claim) {
       return { success: false, message: `No matching claim found for code "${cleanInput}". Please check the 4-digit OTP or Claim ID.` };
@@ -283,19 +329,25 @@ function App() {
       collectedBy: currentUser?.name || 'Kitchen Dispatch Staff',
     };
 
-    setClaims((prev) =>
-      prev.map((c) => (c.id === claim.id ? updatedClaim : c))
-    );
+    setClaims((prev) => {
+      const exists = prev.some(c => c.id === updatedClaim.id);
+      return exists ? prev.map(c => c.id === updatedClaim.id ? updatedClaim : c) : [updatedClaim, ...prev];
+    });
+
+    // Also decrement food quantity on this device if matching item exists
+    if (updatedClaim.foodItemId) {
+      setFoodItems(prev => prev.map(fi => fi.id === updatedClaim.foodItemId ? { ...fi, quantityRemaining: Math.max(0, fi.quantityRemaining - updatedClaim.servingsClaimed) } : fi));
+    }
     
     // Update active modal claim if viewing it
     if (activeClaim && activeClaim.id === claim.id) {
       setActiveClaim(updatedClaim);
     }
 
-    addToast(`Handover Verified! ${claim.servingsClaimed} meals released to ${claim.trustName || 'Trust'}.`, 'success');
+    addToast(`Handover Verified! ${claim.servingsClaimed} meals released to ${claim.trustName || 'Recipient'}.`, 'success');
     return { 
       success: true, 
-      message: `Verified handover of ${claim.servingsClaimed} servings for ${claim.trustName || 'Trust'}.`, 
+      message: `Verified handover of ${claim.servingsClaimed} servings for ${claim.trustName || 'Recipient'}.`, 
       claim: updatedClaim 
     };
   }, [claims, activeClaim, currentUser]);

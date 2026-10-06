@@ -9,7 +9,6 @@ import {
   QrCode, 
   Sparkles,
   Camera,
-  CameraOff,
   KeyRound,
   ShieldCheck,
   Building2,
@@ -44,6 +43,7 @@ export const ScanQRModal: React.FC<ScanQRModalProps> = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const animationFrameId = useRef<number | null>(null);
+  const fileCameraInputRef = useRef<HTMLInputElement>(null);
 
   const stopCamera = useCallback(() => {
     if (animationFrameId.current) {
@@ -61,7 +61,7 @@ export const ScanQRModal: React.FC<ScanQRModalProps> = ({
     setIsProcessing(true);
     setScanResult(null);
 
-    // Short processing buffer for tactile feedback
+    // Short tactile delay
     setTimeout(() => {
       setIsProcessing(false);
       const res = onConfirmPickup(code.trim());
@@ -73,16 +73,57 @@ export const ScanQRModal: React.FC<ScanQRModalProps> = ({
     }, 400);
   }, [onConfirmPickup, stopCamera]);
 
-  // Start live camera stream and scan loop
+  // Handle image taken from mobile camera or chosen from gallery
+  const handleImageScan = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsProcessing(true);
+    setScanResult(null);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const qrCode = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: 'dontInvert',
+          });
+
+          setIsProcessing(false);
+          if (qrCode && qrCode.data) {
+            handleProcessCode(qrCode.data);
+          } else {
+            setScanResult({
+              success: false,
+              message: 'Could not detect a clear QR code in this photo. Please retake closer with clear lighting or enter the 4-digit code.'
+            });
+          }
+        } else {
+          setIsProcessing(false);
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Start live camera stream (WebRTC)
   const startCamera = useCallback(async () => {
     setCameraError(null);
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Camera access not supported by this browser. Please use manual OTP verification.');
+        throw new Error('Live stream blocked on HTTP. Use the "Snap QR with Camera" button below.');
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } },
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 640 }, height: { ideal: 480 } },
       });
 
       streamRef.current = stream;
@@ -93,7 +134,7 @@ export const ScanQRModal: React.FC<ScanQRModalProps> = ({
         setCameraActive(true);
       }
     } catch (err: unknown) {
-      const errMsg = err instanceof Error ? err.message : 'Unable to access camera';
+      const errMsg = err instanceof Error ? err.message : 'Camera stream unavailable';
       setCameraError(errMsg);
       setCameraActive(false);
     }
@@ -124,7 +165,6 @@ export const ScanQRModal: React.FC<ScanQRModalProps> = ({
           });
 
           if (qrCode && qrCode.data) {
-            // QR Code detected!
             handleProcessCode(qrCode.data);
             return;
           }
@@ -144,7 +184,6 @@ export const ScanQRModal: React.FC<ScanQRModalProps> = ({
     };
   }, [cameraActive, isOpen, handleProcessCode]);
 
-  // Auto-start camera when modal opens in scanner tab
   useEffect(() => {
     if (isOpen && activeTab === 'scanner' && !scanResult?.success) {
       startCamera();
@@ -170,6 +209,16 @@ export const ScanQRModal: React.FC<ScanQRModalProps> = ({
         className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 overflow-hidden max-h-[94vh] flex flex-col my-auto"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Hidden Mobile Camera Input (Reliable fallback on 100% of Android/iOS devices) */}
+        <input
+          type="file"
+          ref={fileCameraInputRef}
+          accept="image/*"
+          capture="environment"
+          onChange={handleImageScan}
+          className="hidden"
+        />
+
         {/* Header */}
         <div className="bg-slate-900 text-white px-4 sm:px-5 py-3.5 flex items-center justify-between shrink-0 border-b border-slate-800">
           <div className="flex items-center gap-2.5">
@@ -211,7 +260,7 @@ export const ScanQRModal: React.FC<ScanQRModalProps> = ({
               }`}
             >
               <QrCode className="w-4 h-4" />
-              <span>Camera QR Scanner</span>
+              <span>Camera Scanner</span>
             </button>
             <button
               type="button"
@@ -284,7 +333,7 @@ export const ScanQRModal: React.FC<ScanQRModalProps> = ({
                   </div>
 
                   <div className="flex justify-between items-center text-[11px] text-slate-500 pt-1 border-t border-slate-100">
-                    <span>Verification OTP:</span>
+                    <span>Verification Code:</span>
                     <span className="font-mono font-bold text-slate-800">
                       {scanResult.claim.verificationCode || 'VERIFIED'}
                     </span>
@@ -319,7 +368,7 @@ export const ScanQRModal: React.FC<ScanQRModalProps> = ({
                 <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 flex items-start gap-2 text-xs text-rose-800 animate-in shake">
                   <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                   <div>
-                    <strong className="block font-bold">Verification Failed:</strong>
+                    <strong className="block font-bold">Verification Note:</strong>
                     <span>{scanResult.message}</span>
                   </div>
                 </div>
@@ -328,33 +377,48 @@ export const ScanQRModal: React.FC<ScanQRModalProps> = ({
               {/* CAMERA SCANNER TAB */}
               {activeTab === 'scanner' && (
                 <div className="space-y-3">
-                  <div className="relative bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 min-h-[220px] flex items-center justify-center">
+                  <div className="relative bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 min-h-[200px] flex items-center justify-center">
                     {/* Live Video Element */}
                     <video
                       ref={videoRef}
-                      className={`w-full h-56 object-cover ${cameraActive ? 'block' : 'hidden'}`}
+                      className={`w-full h-52 object-cover ${cameraActive ? 'block' : 'hidden'}`}
                     />
                     {/* Hidden canvas for processing frame */}
                     <canvas ref={canvasRef} className="hidden" />
 
-                    {/* Camera Offline / Fallback Placeholder */}
+                    {/* Camera Offline / Mobile Camera Launcher */}
                     {!cameraActive && (
-                      <div className="p-6 text-center text-slate-400 space-y-2">
+                      <div className="p-5 text-center text-slate-400 space-y-2.5">
                         <div className="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto text-emerald-400">
-                          <CameraOff className="w-6 h-6" />
+                          <Camera className="w-6 h-6" />
                         </div>
-                        <div className="font-bold text-xs text-slate-300">Camera Inactive</div>
-                        <p className="text-[11px] text-slate-500 max-w-xs">
-                          {cameraError || 'Allow camera permission to scan recipient QR passes directly.'}
+                        <div className="font-bold text-xs text-slate-200">
+                          Scan Beneficiary QR Code
+                        </div>
+                        <p className="text-[11px] text-slate-400 max-w-xs mx-auto">
+                          {cameraError ? cameraError : 'Tap below to open your mobile camera and snap the QR pass.'}
                         </p>
-                        <button
-                          type="button"
-                          onClick={startCamera}
-                          className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm"
-                        >
-                          <Camera className="w-3.5 h-3.5" />
-                          <span>Turn On Camera</span>
-                        </button>
+
+                        <div className="flex flex-col sm:flex-row gap-2 justify-center pt-1">
+                          {/* Direct Mobile Camera Trigger */}
+                          <button
+                            type="button"
+                            onClick={() => fileCameraInputRef.current?.click()}
+                            className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center justify-center gap-2 shadow-md transition-all active:scale-98"
+                          >
+                            <Camera className="w-4 h-4" />
+                            <span>Open Camera / Snap QR</span>
+                          </button>
+
+                          {/* Try Live Stream Button */}
+                          <button
+                            type="button"
+                            onClick={startCamera}
+                            className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 font-semibold text-xs inline-flex items-center justify-center gap-1.5 transition-colors"
+                          >
+                            <span>Live Video Stream</span>
+                          </button>
+                        </div>
                       </div>
                     )}
 
@@ -380,33 +444,39 @@ export const ScanQRModal: React.FC<ScanQRModalProps> = ({
                     )}
                   </div>
 
-                  {cameraActive && (
-                    <div className="flex justify-between items-center text-[11px] text-slate-500 px-1">
-                      <span className="flex items-center gap-1 text-emerald-700 font-semibold">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        Live Scanner Active
-                      </span>
+                  {/* Camera Bar Actions */}
+                  <div className="flex justify-between items-center text-[11px] text-slate-500 px-1">
+                    <button
+                      type="button"
+                      onClick={() => fileCameraInputRef.current?.click()}
+                      className="text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-1 underline"
+                    >
+                      <Camera className="w-3.5 h-3.5" />
+                      <span>Take photo of QR instead</span>
+                    </button>
+
+                    {cameraActive && (
                       <button
                         type="button"
                         onClick={stopCamera}
-                        className="text-slate-600 hover:text-slate-900 underline"
+                        className="text-slate-500 hover:text-slate-800 underline"
                       >
-                        Turn off camera
+                        Stop Live Stream
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               )}
 
-              {/* 4-DIGIT OTP / CODE TAB */}
+              {/* 4-DIGIT CODE TAB */}
               {activeTab === 'otp' && (
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
                   <div className="text-center">
                     <label className="block text-xs font-bold text-slate-800 mb-1">
-                      Enter 4-Digit Handover OTP or Claim ID
+                      Enter 4-Digit Pickup Code or Voucher ID
                     </label>
                     <p className="text-[11px] text-slate-500">
-                      Ask the beneficiary / trust driver for the code on their mobile screen
+                      Ask the recipient for the 4-digit code shown on their pass screen
                     </p>
                   </div>
 
@@ -426,25 +496,25 @@ export const ScanQRModal: React.FC<ScanQRModalProps> = ({
                       className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-colors shadow-sm flex items-center gap-1.5"
                     >
                       <ShieldCheck className="w-4 h-4" />
-                      <span>{isProcessing ? 'Verifying...' : 'Verify OTP'}</span>
+                      <span>{isProcessing ? 'Verifying...' : 'Verify'}</span>
                     </button>
                   </div>
                 </div>
               )}
 
-              {/* Active Pending Claims Quick-Verify Queue */}
+              {/* Active Pending Pickups Queue */}
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-bold text-slate-800 flex items-center gap-1">
                     <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Waiting for Pickup ({pendingClaims.length}):</span>
+                    <span>Awaiting Pickup ({pendingClaims.length}):</span>
                   </span>
-                  <span className="text-[10px] text-slate-500">Click to verify</span>
+                  <span className="text-[10px] text-slate-500">1-click verify</span>
                 </div>
 
                 {pendingClaims.length === 0 ? (
                   <p className="text-slate-500 text-[11px] py-1 text-center">
-                    No beneficiary claims currently waiting for pickup.
+                    No active pickups currently waiting for verification.
                   </p>
                 ) : (
                   <div className="space-y-1.5 max-h-40 overflow-y-auto">
@@ -457,7 +527,7 @@ export const ScanQRModal: React.FC<ScanQRModalProps> = ({
                         <div className="truncate pr-2">
                           <div className="flex items-center gap-1.5">
                             <span className="font-mono font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded text-[11px] border border-emerald-200">
-                              OTP: {claim.verificationCode || claim.id.slice(-4)}
+                              CODE: {claim.verificationCode || claim.id.slice(-4)}
                             </span>
                             <span className="font-mono text-slate-500 text-[10px]">
                               ({claim.id})
@@ -468,7 +538,7 @@ export const ScanQRModal: React.FC<ScanQRModalProps> = ({
                           </div>
                           <div className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
                             <Building2 className="w-3 h-3 text-slate-400" />
-                            <span>{claim.trustName || 'Trust'} • {claim.servingsClaimed} portions</span>
+                            <span>{claim.trustName || 'Recipient'} • {claim.servingsClaimed} portions</span>
                           </div>
                         </div>
 
